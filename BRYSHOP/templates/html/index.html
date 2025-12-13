@@ -1,0 +1,114 @@
+{% extends "html/menu.html" %}
+
+{% block content %}
+
+    {% if message %}
+    <div style="background: #dff0d8; padding: 10px; color: #3c763d; margin: 20px; border-radius: 5px; text-align: center;">
+        {{ message }}
+    </div>
+    {% endif %}
+
+    
+    <!-- Section d'accueil améliorée -->
+    <div class="container text-center py-5 welcome-section">
+        <h1 class="display-4">Bienvenue sur <span class="brand-highlight">BryShop</span></h1>
+        <p class="lead">Explorez notre univers digital où l'élégance, la technologie et le confort se rencontrent pour vous offrir une expérience d'achat unique.</p>
+        <p class="mb-0">Découvrez une variété de produits sélectionnés avec soin. Qualité premium, prix attractifs, satisfaction garantie !</p>
+        <p class="text-muted">Livraison offerte à partir de 25 000 XAF • Paiement à la livraison, Orange Money ou PayPal • Assistance 24/7</p>
+        <a href="#" class="btn btn-success btn-lg mt-3">Commencer vos achats</a>
+    </div>
+
+    <!-- Barre de recherche -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <form class="search-bar">
+                <div class="input-group">
+                    <input type="search" name="item-name" placeholder="Rechercher un produit..." class="form-control">
+                    <div class="input-group-append">
+                        <button class="btn btn-success" type="submit">Recherche</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Catalogue de produits -->
+    <div class="row mt-4">
+        {% for product in product_object %}
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card product-card">
+                <img src="{{ product.image.url }}" alt="{{ product.title}}">
+                <div class="card-body">
+                    <h5 id="aa{{product.id}}" class="card-title">{{product.title}}</h5>
+                    <p id="price{{ product.id}}" class="card-text">{{product.price}} <span class="text-info">XAF</span></p>
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ product.id }}" class="btn btn-outline-warning">Aperçu</a>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'add_to_cart' product.id %}" class="btn btn-outline-success">Ajouter</a>
+                        {% else %}
+                            <a href="{% url 'login' %}?next={% url 'add_to_cart' product.id %}" class="btn btn-warning">Se connecter pour acheter</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <div class="row mt-3">
+        <div class="col-md-12 d-flex justify-content-center">
+            <ul class="pagination">
+                {% if product_object.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{product_object.previous_page_number}}">Précédent</a>
+                    </li>
+                {% endif %}
+                <li class="page-item active">
+                    <a class="page-link" href="?page={{product_object.number}}">{{product_object.number}}</a>
+                </li>
+                {% if product_object.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{product_object.next_page_number}}">Suivant</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+<style>
+    body {
+        background: #f8f9fa;
+    }
+    .welcome-section {
+        background: linear-gradient(135deg, #f0fff0, #d0f0d0);
+        border-radius: 15px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+    .brand-highlight {
+        color: #28a745;
+        font-weight: bold;
+    }
+    .search-bar {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        border-radius: 8px;
+    }
+    .product-card {
+        border: none;
+        border-radius: 15px;
+        transition: all 0.3s ease-in-out;
+        background-color: #fff;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    }
+    .pagination .page-link {
+        border-radius: 50px;
+    }
+</style>
+
+{% endblock %}

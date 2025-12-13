@@ -1,0 +1,48 @@
+{% block content %}
+
+
+    <!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmation de commande</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f9ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .message {
+            background-color: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h2 {
+            color: #27ae60;
+        }
+        a {
+            margin-top: 20px;
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+            background-color: #3498db;
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="message">
+        <h2>Merci pour votre commande, {{ nom }} !</h2>
+        <p>Un e-mail de confirmation vous a été envoyé.</p>
+        <a href="{% url 'Accueil' %}">Retour à l’accueil</a>
+    </div>
+</body>
+</html>
+
+{% endblock %}

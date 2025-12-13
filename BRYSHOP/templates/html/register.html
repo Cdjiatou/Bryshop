@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Inscription | BryShop</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #74ebd5, #acb6e5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .form-container {
+      background-color: #ffffff;
+      padding: 40px 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    .form-container h2 {
+      margin-bottom: 25px;
+      color: #333;
+    }
+
+    .form-container img {
+      width: 80px;
+      margin-bottom: 20px;
+    }
+
+    form {
+      text-align: left;
+    }
+
+    form p {
+      margin-bottom: 15px;
+    }
+
+    form input, form select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 20px;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    p {
+      margin-top: 20px;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    p a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    p a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Créer un compte client</h2>
+    <img src="https://cdn-icons-png.flaticon.com/512/5087/5087579.png" alt="Inscription">
+    
+    <form method="POST">
+      {% csrf_token %}
+      {{ user_form.as_p }}
+      {{ client_form.as_p }}
+      <button type="submit">S'inscrire</button>
+    </form>
+
+    <p>Déjà inscrit ? <a href="{% url 'login' %}">Se connecter</a></p>
+  </div>
+</body>
+</html>

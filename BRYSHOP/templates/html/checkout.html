@@ -1,0 +1,35 @@
+{% extends 'html/menu.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center text-success mb-4">🎉 Merci pour votre commande !</h2>
+        <p class="lead text-center">Voici le récapitulatif de votre commande :</p>
+
+        {% if cart_items %}
+        <ul class="list-group mb-4">
+            {% for item in cart_items %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ item.product.title }}</strong> <br>
+                    <small class="text-muted">Quantité : {{ item.quantity }}</small>
+                </div>
+                <span class="badge bg-primary rounded-pill">{{ item.product.price|floatformat:0 }} x {{ item.quantity }} = {{ item.product.price|floatformat:0|add:item.quantity|floatformat:0 }} XAF</span>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <div class="text-end">
+            <h4>Total à payer : <span class="text-success fw-bold">{{ total_price }} XAF</span></h4>
+
+            <form method="post" action="{% url 'place_order' %}">
+                {% csrf_token %}
+                <button class="btn btn-lg btn-success mt-3">✅ Confirmer la commande</button>
+            </form>
+        </div>
+        {% else %}
+            <p class="text-muted text-center mt-4">Votre panier est vide.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

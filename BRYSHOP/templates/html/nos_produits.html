@@ -1,0 +1,60 @@
+{% extends "html/menu.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <!-- Message marketing -->
+    <div class="text-center mb-5" style="font-family: Georgia, 'Times New Roman', Times, serif;">
+        <h1 class="display-4 text-success">Découvrez notre collection exclusive</h1>
+        <p class="lead">Du style, de la technologie, du confort — le tout à des prix imbattables. Faites-vous plaisir dès maintenant !</p>
+    </div>
+
+    <!-- Liste des produits -->
+    {% for product in produits %}
+    <div class="card mb-4 shadow-sm p-3" style="border-radius: 15px; cursor:pointer;">
+        <div class="row g-0 align-items-center">
+            <div class="col-md-4">
+                <img src="{{ product.image.url }}" class="img-fluid rounded" style="width: 100%; max-height: 250px; object-fit: cover;" alt="{{ product.title }}">
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h4 class="card-title text-primary">{{ product.title }}</h4>
+                    <p class="card-text text-muted">{{ product.description|truncatechars:120 }}</p>
+                    <p class="card-text h5 text-danger">{{ product.price }} XAF</p>
+                    <a href="{% url 'detail' product.id %}" class="btn btn-outline-success mt-2">Voir Détails</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block js %}
+<style>
+    .product-card-horizontal {
+        border-radius: 15px;
+        overflow: hidden;
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .product-card-horizontal:hover {
+        transform: scale(1.02);
+    }
+
+    .object-fit-cover {
+        object-fit: cover;
+        height: 100%;
+    }
+
+    @media (max-width: 768px) {
+        .product-card-horizontal .row {
+            flex-direction: column;
+        }
+
+        .object-fit-cover {
+            height: auto;
+        }
+    }
+</style>
+{% endblock %}

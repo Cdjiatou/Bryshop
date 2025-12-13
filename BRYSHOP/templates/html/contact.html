@@ -1,0 +1,62 @@
+{% extends "html/menu.html" %}
+{% block content %}
+
+<div class="container mt-5 mb-5">
+    <h2 class="text-center mb-4 text-success">Contactez-nous</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Formulaire -->
+        <div class="col-md-6">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group mb-3">
+                    <label for="name">Nom</label>
+                    <input type="text" name="name" id="name" class="form-control" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="email">Adresse Email</label>
+                    <input type="email" name="email" id="email" class="form-control" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="subject">Sujet</label>
+                    <input type="text" name="subject" id="subject" class="form-control" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="message">Message</label>
+                    <textarea name="message" id="message" rows="5" class="form-control" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Envoyer</button>
+            </form>
+        </div>
+
+        <!-- Informations et carte -->
+        <div class="col-md-6">
+            <div class="mb-4">
+                <h5 class="text-primary">Nos coordonnées</h5>
+                <p><strong>Adresse :</strong> Rue 123, Douala, Cameroun</p>
+                <p><strong>Téléphone :</strong> +237 6 78 90 12 34</p>
+                <p><strong>Email :</strong> contact@bryshop.com</p>
+                <p><strong>Heures d'ouverture :</strong> Lun - Sam : 8h - 18h</p>
+            </div>
+            <div class="border rounded shadow-sm">
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3979.999511859399!2d9.708708314260844!3d4.051056097112719!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x10613dbd3d0a97ad%3A0x16a7eb13c2d43e14!2sDouala!5e0!3m2!1sfr!2scm!4v1687624239134!5m2!1sfr!2scm" 
+                    width="100%" 
+                    height="250" 
+                    style="border:0;" 
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

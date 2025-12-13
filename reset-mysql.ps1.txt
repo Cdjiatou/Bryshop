@@ -1,0 +1,27 @@
+# === CONFIGURATION ===
+$databaseName = "ecommerce"
+$mysqlUser = "root"
+$mysqlPassword = ""
+
+# === SUPPRIMER LES MIGRATIONS ===
+$apps = @("accounts", "store")  # Mets ici toutes tes apps concernées
+
+foreach ($app in $apps) {
+    $migrationPath = "..\$app\migrations"
+    if (Test-Path $migrationPath) {
+        Get-ChildItem $migrationPath -File | Where-Object { $_.Name -ne "__init__.py" } | Remove-Item -Force
+        Write-Output "Migrations supprimées pour l'app $app."
+    }
+}
+
+# === SUPPRIMER ET RECRÉER LA BASE ===
+Write-Output "Suppression de la base de données $databaseName..."
+$dropQuery = "DROP DATABASE IF EXISTS $databaseName;"
+$createQuery = "CREATE DATABASE $databaseName DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# Exécuter les commandes MySQL
+mysql -u $mysqlUser -p$mysqlPassword -e "$dropQuery $createQuery"
+
+# === MIGRATIONS ===
+python ..\manage.py makemigrations
+python ..\manage.py migrate

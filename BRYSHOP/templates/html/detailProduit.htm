@@ -1,0 +1,71 @@
+{% extends 'html/menu.html' %}
+
+{% block content %}
+    <div class="container py-5">
+        <div class="row product-detail align-items-stretch">
+            <div class="col-md-6 mb-4 mb-md-0">
+                <div class="image-container h-100">
+                    <img src="{{ product.image.url }}" class="img-fluid h-100 w-100 object-cover rounded" alt="{{ product.title }}">
+                </div>
+                
+            </div>
+            <div class="col-md-6 d-flex flex-column justify-content-between">
+                <div>
+                    <h1 class="display-5 fw-bold text-success">{{ product.title }}</h1>
+                    <h4 class="text-danger mb-3">{{ product.price }} XAF</h4>
+                    <p class="text-muted fs-5">{{ product.description }}</p>
+                </div>
+                <div>
+                    <a href="#" class="btn btn-success btn-lg w-100 mt-4">Acheter</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .product-detail {
+            min-height: 80vh;
+        }
+
+        .product-img {
+            max-height: 500px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .object-cover {
+            object-fit: cover;
+        }
+    
+        .image-container {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+    
+        @media (max-width: 768px) {
+            .image-container {
+                height: auto;
+            }
+    
+            .image-container img {
+                height: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .product-detail {
+                flex-direction: column;
+            }
+
+            .product-img {
+                max-height: 300px;
+            }
+
+            .product-detail .col-md-6 {
+                margin-bottom: 1.5rem;
+            }
+        }
+    </style>
+
+{% endblock  %}

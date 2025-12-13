@@ -1,0 +1,131 @@
+{% extends "html/menu.html" %}
+
+
+{% block content %}
+<style>
+    .product-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-img {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+    }
+
+    .product-body {
+        padding: 15px;
+    }
+
+    .product-title {
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+
+    .product-price {
+        color: #28a745;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    .product-description {
+        font-size: 0.9rem;
+        color: #555;
+        height: 60px;
+        overflow: hidden;
+    }
+</style>
+
+<div class="container mt-4">
+    <h2 class="mb-4">Produits dans la catégorie : {{ categorie.name }}</h2>
+
+    <div class="row">
+        {% for produit in produits %}
+        <div class="col-md-4">
+            <div class="product-card">
+                <img src="{{ produit.image.url }}" alt="{{ produit.title }}" class="product-img">
+                <div class="product-body">
+                    <h5 id="aa{{ produit.id }}" class="product-title">{{ produit.title }}</h5>
+                    <p class="product-description">{{ produit.description|truncatechars:100 }}</p>
+                    <p id="price{{ produit.id }}" class="product-price">{{ produit.price }} XAF</p>
+                    <button id="{{ produit.id }}" class="btn btn-success flo mt-2">Ajouter au panier</button>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p>Aucun produit dans cette catégorie pour le moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+<script>
+    $(document).ready(function(){
+        $('[data-toggle="popover"]').popover();
+    });
+</script>
+  
+{% block js %}
+<script type="text/javascript">
+    // Initialisation ou récupération du panier
+    if (localStorage.getItem('panier') == null) {
+        var panier = {};
+    } else {
+        panier = JSON.parse(localStorage.getItem('panier'));
+    }
+
+    function updatePanierCount() {
+        document.getElementById("panier").innerHTML = "Panier (" + Object.keys(panier).length + ")";
+    }
+
+    // Ajout au panier
+    $(document).on('click', '.flo', function(){
+        var item_id = this.id.toString();
+        var price = parseFloat(document.getElementById("price" + item_id).innerHTML);
+        var name = document.getElementById("aa" + item_id).innerHTML;
+
+        if (panier[item_id] !== undefined) {
+            panier[item_id][0] += 1;
+            panier[item_id][2] += price;
+        } else {
+            panier[item_id] = [1, name, price];
+        }
+
+        localStorage.setItem('panier', JSON.stringify(panier));
+        updatePanierCount();
+        AfficherList(panier);
+    });
+
+    // Affichage du contenu du panier dans le popover
+    function AfficherList(panier){
+        var panierString = "<h5>Votre panier</h5><ul>";
+        for(var x in panier){
+            panierString += "<li>" + document.getElementById("aa"+x).innerHTML +
+                            " - Qte: " + panier[x][0] +
+                            " - Prix: " + panier[x][2].toFixed(2) + " XAF</li>";
+        }
+        panierString += "</ul>";
+        panierString += "<a href='/checkout' class='btn btn-primary'>Passer à la caisse</a>";
+
+        $('[data-toggle="popover"]').popover('dispose');
+        document.getElementById('panier').setAttribute('data-content', panierString);
+        $('[data-toggle="popover"]').popover();
+    }
+
+    // Initialisation au chargement
+    updatePanierCount();
+    AfficherList(panier);
+</script>
+
+{% endblock %}
