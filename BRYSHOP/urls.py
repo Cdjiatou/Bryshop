@@ -15,6 +15,8 @@ urlpatterns = [
      path('checkout/', views.checkout, name='checkout'),
     path('place_order/', views.place_order, name='place_order'),
     path('cart/update/<int:cart_item_id>/<str:action>/', views.update_cart_quantity, name='update_cart_quantity'),
+    path('payment/callback/', views.payment_callback, name='payment_callback'),
+    path('test-payment/', views.test_payment_view, name='test_payment'),
 
 
 
