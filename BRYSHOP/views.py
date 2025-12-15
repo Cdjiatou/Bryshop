@@ -194,13 +194,29 @@ def checkout(request):
         cart = Cart.objects.get(user=request.user)
         cart_items = cart.items.all()
         total_price = sum(item.product.price * item.quantity for item in cart_items)
+        
+        # Calculer frais de livraison
+        pays = request.user.customuser.pays if hasattr(request.user, 'customuser') else ''
+        frais_par_pays = {
+            'Cameroun': 1500,
+            'France': 5000,
+            'Côte d\'Ivoire': 2000,
+            'Sénégal': 2500,
+            'Gabon': 3000,
+        }
+        frais_livraison = frais_par_pays.get(pays, 2000)
+        total_avec_livraison = total_price + frais_livraison
     except Cart.DoesNotExist:
         cart_items = []
         total_price = 0
+        frais_livraison = 0
+        total_avec_livraison = 0
 
     return render(request, 'html/checkout.html', {
         'cart_items': cart_items,
-        'total_price': total_price
+        'total_price': total_price,
+        'frais_livraison': frais_livraison,
+        'total_avec_livraison': total_avec_livraison
     })
     
 
@@ -211,66 +227,82 @@ from .models import Cart, Order
 
 @login_required
 def place_order(request):
-    user = request.user
-    cart = Cart.objects.filter(user=user).first()
+    if request.method == 'POST':
+        user = request.user
+        cart = Cart.objects.filter(user=user).first()
+        mode_paiement = request.POST.get('mode_paiement', 'livraison')
 
-    if not cart or not cart.items.exists():
-        messages.warning(request, "Votre panier est vide.")
-        return redirect('checkout')
+        if not cart or not cart.items.exists():
+            messages.warning(request, "Votre panier est vide.")
+            return redirect('checkout')
 
-    cart_items = cart.items.all()
+        cart_items = cart.items.all()
 
-    # Vérifier le stock avant de créer les commandes
-    for item in cart_items:
-        if not item.product.peut_commander(item.quantity):
-            messages.error(request, f"Stock insuffisant pour '{item.product.title}'. Stock disponible : {item.product.stock}")
-            return redirect('cart')
+        # Vérifier le stock avant de créer les commandes
+        for item in cart_items:
+            if not item.product.peut_commander(item.quantity):
+                messages.error(request, f"Stock insuffisant pour '{item.product.title}'. Stock disponible : {item.product.stock}")
+                return redirect('cart')
 
-    # Créer les commandes et déduire le stock
-    for item in cart_items:
-        Order.objects.create(
-            user=user,
-            product=item.product,
-            quantity=item.quantity,
-            nom=f"{user.first_name} {user.last_name}",
-            email=user.email,
-            address=user.customuser.ville if hasattr(user, 'customuser') else '',
-            ville=user.customuser.ville if hasattr(user, 'customuser') else '',
-            pays=user.customuser.pays if hasattr(user, 'customuser') else '',
+        # Créer les commandes et déduire le stock
+        total = 0
+        frais_livraison_total = 0
+        for item in cart_items:
+            order = Order(
+                user=user,
+                product=item.product,
+                quantity=item.quantity,
+                mode_paiement=mode_paiement,
+                statut_paiement='paye' if mode_paiement == 'livraison' else 'en_attente',
+                nom=f"{user.first_name} {user.last_name}",
+                email=user.email,
+                address=user.customuser.ville if hasattr(user, 'customuser') else '',
+                ville=user.customuser.ville if hasattr(user, 'customuser') else '',
+                pays=user.customuser.pays if hasattr(user, 'customuser') else '',
+            )
+            order.frais_livraison = order.calculer_frais_livraison()
+            order.save()
+            
+            # Déduire le stock
+            item.product.stock -= item.quantity
+            item.product.save()
+            
+            total += item.product.price * item.quantity
+            frais_livraison_total += order.frais_livraison
+
+        # Préparer le message e-mail
+        subject = "✅ Confirmation de votre commande - BryShop"
+        message_email = f"Bonjour {user.first_name},\n\n"
+        message_email += "Merci pour votre commande sur BryShop ! Voici un résumé de vos achats :\n\n"
+
+        for item in cart_items:
+            message_email += f"- {item.product.title} x {item.quantity} = {item.product.price * item.quantity} XAF\n"
+
+        message_email += f"\nSous-total : {total} XAF\n"
+        message_email += f"Frais de livraison : {frais_livraison_total} XAF\n"
+        message_email += f"Total : {total + frais_livraison_total} XAF\n\n"
+        message_email += "Nous traiterons votre commande dans les plus brefs délais.\n\nMerci pour votre confiance.\n\nL'équipe BryShop"
+
+        send_mail(
+            subject,
+            message_email,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False
         )
-        # Déduire le stock
-        item.product.stock -= item.quantity
-        item.product.save()
 
-    # Calcul du total
-    total = sum(item.product.price * item.quantity for item in cart_items)
+        # Vider le panier après la commande
+        cart.items.all().delete()
 
-    # Préparer le message e-mail
-    subject = "✅ Confirmation de votre commande - BryShop"
-    message = f"Bonjour {user.first_name},\n\n"
-    message += "Merci pour votre commande sur BryShop ! Voici un résumé de vos achats :\n\n"
+        # Message de confirmation à l'utilisateur dans l'interface
+        if mode_paiement == 'livraison':
+            messages.success(request, "🎉 Merci pour votre commande ! Vous paierez à la livraison. Un email de confirmation vous a été envoyé.")
+        else:
+            messages.info(request, f"🎉 Commande enregistrée ! Paiement {order.get_mode_paiement_display()} en attente de confirmation.")
 
-    for item in cart_items:
-        message += f"- {item.product.title} x {item.quantity} = {item.product.price * item.quantity} XAF\n"
-
-    message += f"\nTotal : {total} XAF\n\n"
-    message += "Nous traiterons votre commande dans les plus brefs délais.\n\nMerci pour votre confiance.\n\nL'équipe BryShop"
-
-    send_mail(
-        subject,
-        message,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email],
-        fail_silently=False
-    )
-
-    # Vider le panier après la commande
-    cart.items.all().delete()
-
-    # Message de confirmation à l'utilisateur dans l'interface
-    messages.success(request, "🎉 Merci pour votre commande ! Un email de confirmation vous a été envoyé.")
-
-    return redirect('confirmation')
+        return redirect('confirmation')
+    
+    return redirect('checkout')
 
 
 @login_required

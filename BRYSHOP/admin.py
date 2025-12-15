@@ -23,10 +23,10 @@ class AdminCommande(admin.ModelAdmin):
     list_display = ('items', 'nom', 'email', 'address', 'ville', 'pays', 'total', 'zipcode', 'date_commande')
 
 class AdminOrder(admin.ModelAdmin):
-    list_display = ('numero_commande', 'user', 'product', 'quantity', 'statut', 'ville', 'pays', 'date_ordered')
-    list_filter = ('statut', 'date_ordered', 'pays')
+    list_display = ('numero_commande', 'user', 'product', 'quantity', 'mode_paiement', 'statut_paiement', 'frais_livraison', 'statut', 'ville', 'pays', 'date_ordered')
+    list_filter = ('statut', 'statut_paiement', 'mode_paiement', 'date_ordered', 'pays')
     search_fields = ('numero_commande', 'user__username', 'product__title', 'email')
-    list_editable = ('statut',)
+    list_editable = ('statut', 'statut_paiement')
     readonly_fields = ('numero_commande', 'date_ordered')
     ordering = ('-date_ordered',)
 

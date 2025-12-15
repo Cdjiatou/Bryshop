@@ -81,17 +81,33 @@ class Order(models.Model):
         ('annule', 'Annulé'),
     ]
     
+    MODE_PAIEMENT_CHOICES = [
+        ('livraison', 'Paiement à la livraison'),
+        ('orange_money', 'Orange Money'),
+        ('mtn_money', 'MTN Mobile Money'),
+        ('carte_bancaire', 'Carte bancaire'),
+    ]
+    
+    STATUT_PAIEMENT_CHOICES = [
+        ('en_attente', 'En attente'),
+        ('paye', 'Payé'),
+        ('echoue', 'Échoué'),
+    ]
+    
     numero_commande = models.CharField(max_length=50, unique=True, editable=False, default='CMD-###')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_attente')
+    mode_paiement = models.CharField(max_length=20, choices=MODE_PAIEMENT_CHOICES, default='livraison')
+    statut_paiement = models.CharField(max_length=20, choices=STATUT_PAIEMENT_CHOICES, default='en_attente')
     nom = models.CharField(max_length=150, default='')
     email = models.EmailField(default='')
     address = models.CharField(max_length=200, default='')
     ville = models.CharField(max_length=200, default='')
     pays = models.CharField(max_length=300, default='')
     zipcode = models.CharField(max_length=300, default='')
+    frais_livraison = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     date_ordered = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
@@ -102,6 +118,21 @@ class Order(models.Model):
             unique_id = str(uuid.uuid4().hex[:6]).upper()
             self.numero_commande = f"CMD-{timestamp}-{unique_id}"
         super().save(*args, **kwargs)
+
+    def calculer_frais_livraison(self):
+        """Calcule les frais de livraison selon le pays"""
+        frais_par_pays = {
+            'Cameroun': 1500,
+            'France': 5000,
+            'Côte d\'Ivoire': 2000,
+            'Sénégal': 2500,
+            'Gabon': 3000,
+        }
+        return frais_par_pays.get(self.pays, 2000)
+    
+    def total_commande(self):
+        """Calcule le total avec frais de livraison"""
+        return (self.product.price * self.quantity) + self.frais_livraison
 
     def __str__(self):
         return f"{self.numero_commande} - {self.user.username}"

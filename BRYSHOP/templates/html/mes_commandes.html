@@ -13,6 +13,7 @@
                     <th>Produit</th>
                     <th class="text-center">Quantité</th>
                     <th class="text-end">Prix</th>
+                    <th class="text-center">Mode paiement</th>
                     <th class="text-center">Statut</th>
                     <th>Date</th>
                     <th>Livraison</th>
@@ -26,6 +27,9 @@
                     <td class="text-center"><span class="badge bg-info">{{ commande.quantity }}</span></td>
                     <td class="text-end">{{ commande.product.price|floatformat:2 }} XAF</td>
                     <td class="text-center">
+                        <small class="text-muted">{{ commande.get_mode_paiement_display }}</small>
+                    </td>
+                    <td class="text-center">
                         {% if commande.statut == 'en_attente' %}
                         <span class="badge bg-warning text-dark">{{ commande.get_statut_display }}</span>
                         {% elif commande.statut == 'traitement' %}
@@ -37,6 +41,16 @@
                         {% elif commande.statut == 'annule' %}
                         <span class="badge bg-danger">{{ commande.get_statut_display }}</span>
                         {% endif %}
+                        <br>
+                        <small>
+                            {% if commande.statut_paiement == 'paye' %}
+                            <span class="badge bg-success mt-1">✓ Payé</span>
+                            {% elif commande.statut_paiement == 'en_attente' %}
+                            <span class="badge bg-warning text-dark mt-1">⏳ En attente</span>
+                            {% elif commande.statut_paiement == 'echoue' %}
+                            <span class="badge bg-danger mt-1">✗ Échoué</span>
+                            {% endif %}
+                        </small>
                     </td>
                     <td>{{ commande.date_ordered|date:"d/m/Y H:i" }}</td>
                     <td>
