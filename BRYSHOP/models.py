@@ -47,6 +47,21 @@ class Commande(models.Model):
         return self.nom 
     
     
+class Payment(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    notch_pay_id = models.CharField(max_length=100, unique=True, help_text="ID unique de la transaction Notch Pay")
+    reference = models.CharField(max_length=100, unique=True, help_text="Notre référence unique de commande")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=10, default="XAF")
+    status = models.CharField(max_length=50) # complete, pending, failed, canceled
+    customer_id = models.CharField(max_length=100, null=True, blank=True)
+    payment_method = models.CharField(max_length=100, null=True, blank=True)
+    created_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    raw_response = models.JSONField(null=True, blank=True, help_text="Réponse brute JSON de Notch Pay")
+
+    def __str__(self):
+        return f"Paiement {self.reference} - {self.status}"
 
     
 class Cart(models.Model):
@@ -69,6 +84,7 @@ class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
+    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     date_ordered = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
