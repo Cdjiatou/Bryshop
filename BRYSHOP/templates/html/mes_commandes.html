@@ -1,0 +1,82 @@
+{% extends 'html/menu.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4 text-center text-primary">📦 Mes Commandes</h2>
+
+    {% if commandes %}
+    <div class="table-responsive shadow rounded">
+        <table class="table align-middle table-hover">
+            <thead class="table-primary">
+                <tr>
+                    <th>Numéro</th>
+                    <th>Produit</th>
+                    <th class="text-center">Quantité</th>
+                    <th class="text-end">Prix</th>
+                    <th class="text-center">Mode paiement</th>
+                    <th class="text-center">Statut</th>
+                    <th>Date</th>
+                    <th>Livraison</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for commande in commandes %}
+                <tr>
+                    <td><span class="badge bg-secondary">{{ commande.numero_commande }}</span></td>
+                    <td>{{ commande.product.title }}</td>
+                    <td class="text-center"><span class="badge bg-info">{{ commande.quantity }}</span></td>
+                    <td class="text-end">{{ commande.product.price|floatformat:2 }} XAF</td>
+                    <td class="text-center">
+                        <small class="text-muted">{{ commande.get_mode_paiement_display }}</small>
+                    </td>
+                    <td class="text-center">
+                        {% if commande.statut == 'en_attente' %}
+                        <span class="badge bg-warning text-dark">{{ commande.get_statut_display }}</span>
+                        {% elif commande.statut == 'traitement' %}
+                        <span class="badge bg-info">{{ commande.get_statut_display }}</span>
+                        {% elif commande.statut == 'expedie' %}
+                        <span class="badge bg-primary">{{ commande.get_statut_display }}</span>
+                        {% elif commande.statut == 'livre' %}
+                        <span class="badge bg-success">{{ commande.get_statut_display }}</span>
+                        {% elif commande.statut == 'annule' %}
+                        <span class="badge bg-danger">{{ commande.get_statut_display }}</span>
+                        {% endif %}
+                        <br>
+                        <small>
+                            {% if commande.statut_paiement == 'paye' %}
+                            <span class="badge bg-success mt-1">✓ Payé</span>
+                            {% elif commande.statut_paiement == 'en_attente' %}
+                            <span class="badge bg-warning text-dark mt-1">⏳ En attente</span>
+                            {% elif commande.statut_paiement == 'echoue' %}
+                            <span class="badge bg-danger mt-1">✗ Échoué</span>
+                            {% endif %}
+                        </small>
+                    </td>
+                    <td>{{ commande.date_ordered|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <small class="text-muted">
+                            {{ commande.ville }}, {{ commande.pays }}
+                        </small>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4 text-center">
+        <a href="{% url 'nos_produits' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Continuer mes achats
+        </a>
+    </div>
+
+    {% else %}
+    <div class="alert alert-warning text-center mt-5">
+        <h5>Vous n'avez pas encore passé de commande.</h5>
+        <a href="{% url 'nos_produits' %}" class="btn btn-outline-primary mt-3">
+            Explorer nos produits
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
