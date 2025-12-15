@@ -14,21 +14,63 @@
                     <strong>{{ item.product.title }}</strong> <br>
                     <small class="text-muted">Quantité : {{ item.quantity }}</small>
                 </div>
-                <span class="badge bg-primary rounded-pill">{{ item.product.price|floatformat:0 }} x {{ item.quantity }} = {{ item.product.price|floatformat:0|add:item.quantity|floatformat:0 }} XAF</span>
+                <span class="badge bg-primary rounded-pill">{{ item.product.price|floatformat:0 }} x {{ item.quantity }}
+                    = {{ item.product.price|floatformat:0|add:item.quantity|floatformat:0 }} XAF</span>
             </li>
             {% endfor %}
         </ul>
 
-        <div class="text-end">
-            <h4>Total à payer : <span class="text-success fw-bold">{{ total_price }} XAF</span></h4>
+        <div class="border-top pt-3 mt-3">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>Sous-total : <strong>{{ total_price }} XAF</strong></p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p>Frais de livraison : <strong>{{ frais_livraison }} XAF</strong></p>
+                </div>
+            </div>
+            <h4 class="text-end">Total à payer : <span class="text-success fw-bold">{{ total_avec_livraison }}
+                    XAF</span></h4>
+        </div>
 
+        <div class="mt-4">
+            <h5 class="mb-3">💳 Mode de paiement</h5>
             <form method="post" action="{% url 'place_order' %}">
                 {% csrf_token %}
-                <button class="btn btn-lg btn-success mt-3">✅ Confirmer la commande</button>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="mode_paiement" id="livraison" value="livraison"
+                        checked>
+                    <label class="form-check-label" for="livraison">
+                        💵 Paiement à la livraison
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="mode_paiement" id="orange_money"
+                        value="orange_money">
+                    <label class="form-check-label" for="orange_money">
+                        🟠 Orange Money
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="mode_paiement" id="mtn_money" value="mtn_money">
+                    <label class="form-check-label" for="mtn_money">
+                        🟡 MTN Mobile Money
+                    </label>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="radio" name="mode_paiement" id="carte_bancaire"
+                        value="carte_bancaire">
+                    <label class="form-check-label" for="carte_bancaire">
+                        💳 Carte bancaire
+                    </label>
+                </div>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-lg btn-success">✅ Confirmer la commande</button>
+                </div>
             </form>
         </div>
         {% else %}
-            <p class="text-muted text-center mt-4">Votre panier est vide.</p>
+        <p class="text-muted text-center mt-4">Votre panier est vide.</p>
         {% endif %}
     </div>
 </div>
