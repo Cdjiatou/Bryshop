@@ -20,13 +20,20 @@ class Product(models.Model):
     description = models.TextField()
     category = models.ForeignKey(Category, related_name='categorie', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='products/')
+    stock = models.PositiveIntegerField(default=0)
     date_added= models.DateTimeField(auto_now=True)
     
     class Meta:
         ordering = ['-date_added']
         
     def __str__(self):
-        return self.title 
+        return self.title
+    
+    def est_disponible(self):
+        return self.stock > 0
+    
+    def peut_commander(self, quantite):
+        return self.stock >= quantite 
     
     
 class Commande(models.Model):
@@ -66,10 +73,35 @@ class CartItem(models.Model):
 
 
 class Order(models.Model):
+    STATUT_CHOICES = [
+        ('en_attente', 'En attente'),
+        ('traitement', 'En traitement'),
+        ('expedie', 'Expédié'),
+        ('livre', 'Livré'),
+        ('annule', 'Annulé'),
+    ]
+    
+    numero_commande = models.CharField(max_length=50, unique=True, editable=False, default='CMD-###')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
+    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_attente')
+    nom = models.CharField(max_length=150, default='')
+    email = models.EmailField(default='')
+    address = models.CharField(max_length=200, default='')
+    ville = models.CharField(max_length=200, default='')
+    pays = models.CharField(max_length=300, default='')
+    zipcode = models.CharField(max_length=300, default='')
     date_ordered = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        if not self.numero_commande:
+            import uuid
+            from datetime import datetime
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+            unique_id = str(uuid.uuid4().hex[:6]).upper()
+            self.numero_commande = f"CMD-{timestamp}-{unique_id}"
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"Commande de {self.user} - {self.product.title}"
+        return f"{self.numero_commande} - {self.user.username}"

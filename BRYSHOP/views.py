@@ -124,16 +124,24 @@ def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     user = request.user
 
-    cart, created = Cart.objects.get_or_create(user=user)
+    if not product.est_disponible():
+        messages.error(request, f"Le produit '{product.title}' est en rupture de stock.")
+        return redirect('Accueil')
 
+    cart, created = Cart.objects.get_or_create(user=user)
     existing_item = cart.items.filter(product=product).first()
 
     if existing_item:
-        existing_item.quantity += 1
+        nouvelle_quantite = existing_item.quantity + 1
+        if not product.peut_commander(nouvelle_quantite):
+            messages.warning(request, f"Stock insuffisant pour '{product.title}'. Stock disponible : {product.stock}")
+            return redirect('cart')
+        existing_item.quantity = nouvelle_quantite
         existing_item.save()
     else:
-        new_item = CartItem.objects.create(product=product, quantity=1, cart=cart)
+        CartItem.objects.create(product=product, quantity=1, cart=cart)
 
+    messages.success(request, f"'{product.title}' ajouté au panier.")
     return redirect('cart')
 
 
@@ -155,7 +163,11 @@ def update_cart_quantity(request, cart_item_id, action):
     cart_item = get_object_or_404(CartItem, id=cart_item_id, cart__user=request.user)
     
     if action == "increment":
-        cart_item.quantity += 1
+        nouvelle_quantite = cart_item.quantity + 1
+        if not cart_item.product.peut_commander(nouvelle_quantite):
+            messages.warning(request, f"Stock insuffisant pour '{cart_item.product.title}'. Stock disponible : {cart_item.product.stock}")
+            return redirect('cart')
+        cart_item.quantity = nouvelle_quantite
         cart_item.save()
     elif action == "decrement":
         if cart_item.quantity > 1:
@@ -208,13 +220,27 @@ def place_order(request):
 
     cart_items = cart.items.all()
 
-    # Créer les commandes (sauvegarder en BDD)
+    # Vérifier le stock avant de créer les commandes
+    for item in cart_items:
+        if not item.product.peut_commander(item.quantity):
+            messages.error(request, f"Stock insuffisant pour '{item.product.title}'. Stock disponible : {item.product.stock}")
+            return redirect('cart')
+
+    # Créer les commandes et déduire le stock
     for item in cart_items:
         Order.objects.create(
             user=user,
             product=item.product,
-            quantity=item.quantity
+            quantity=item.quantity,
+            nom=f"{user.first_name} {user.last_name}",
+            email=user.email,
+            address=user.customuser.ville if hasattr(user, 'customuser') else '',
+            ville=user.customuser.ville if hasattr(user, 'customuser') else '',
+            pays=user.customuser.pays if hasattr(user, 'customuser') else '',
         )
+        # Déduire le stock
+        item.product.stock -= item.quantity
+        item.product.save()
 
     # Calcul du total
     total = sum(item.product.price * item.quantity for item in cart_items)
@@ -245,4 +271,10 @@ def place_order(request):
     messages.success(request, "🎉 Merci pour votre commande ! Un email de confirmation vous a été envoyé.")
 
     return redirect('confirmation')
+
+
+@login_required
+def mes_commandes(request):
+    commandes = Order.objects.filter(user=request.user).order_by('-date_ordered')
+    return render(request, 'html/mes_commandes.html', {'commandes': commandes})
 
