@@ -1,4 +1,115 @@
-from django.contrib.auth.decorators import login_required
+
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .forms_profil import ProfilBoutiquierForm, PasswordChangeCustomForm
+from django.contrib.auth import update_session_auth_hash,get_user_model
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .forms import CategoryForm, ProductForm
+
+
+# Vérifie si l'utilisateur est boutiquier ou superuser
+def is_boutiquier(user):
+    return user.is_superuser or (hasattr(user, 'role') and user.role == 'boutiquier')
+
+# Vue pour modifier le profil du boutiquier
+@login_required
+@user_passes_test(is_boutiquier, login_url='login')
+def modifier_profil(request):
+    user = request.user
+    if request.method == 'POST':
+        form = ProfilBoutiquierForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profil mis à jour avec succès !')
+            return redirect('dashboard_boutiquier')
+    else:
+        form = ProfilBoutiquierForm(instance=user)
+    return render(request, 'html/modifier_profil.html', {'form': form})
+
+# Vue pour changer le mot de passe
+@login_required
+@user_passes_test(is_boutiquier, login_url='login')
+def changer_mot_de_passe(request):
+    user = request.user
+    if request.method == 'POST':
+        form = PasswordChangeCustomForm(request.POST)
+        if form.is_valid():
+            old_password = form.cleaned_data['old_password']
+            new_password1 = form.cleaned_data['new_password1']
+            new_password2 = form.cleaned_data['new_password2']
+            if not user.check_password(old_password):
+                form.add_error('old_password', 'Ancien mot de passe incorrect.')
+            elif new_password1 != new_password2:
+                form.add_error('new_password2', 'Les mots de passe ne correspondent pas.')
+            else:
+                user.set_password(new_password1)
+                user.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Mot de passe changé avec succès !')
+                return redirect('dashboard_boutiquier')
+    else:
+        form = PasswordChangeCustomForm()
+    return render(request, 'html/changer_mot_de_passe.html', {'form': form})
+
+
+# Vérifie si l'utilisateur est boutiquier ou superuser
+def is_boutiquier(user):
+    return user.is_superuser or (hasattr(user, 'role') and user.role == 'boutiquier')
+
+# Vue pour ajouter une catégorie
+@login_required
+@user_passes_test(is_boutiquier, login_url='login')
+def ajouter_categorie(request):
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Catégorie ajoutée avec succès !')
+            return redirect('dashboard_boutiquier')
+    else:
+        form = CategoryForm()
+    return render(request, 'html/ajouter_categorie.html', {'form': form})
+
+# Vue pour ajouter un produit
+@login_required
+@user_passes_test(is_boutiquier, login_url='login')
+def ajouter_produit(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Produit ajouté avec succès !')
+            return redirect('dashboard_boutiquier')
+    else:
+        form = ProductForm()
+    return render(request, 'html/ajouter_produit.html', {'form': form})
+
+@login_required
+@user_passes_test(is_boutiquier, login_url='login')
+def dashboard_boutiquier(request):
+    user = request.user
+    # Statistiques
+    total_commandes = Order.objects.count()
+    total_produits = Product.objects.count()
+    User = get_user_model()
+    total_clients = User.objects.count()
+    commandes = Order.objects.all().order_by('-date_ordered')
+    categories = Category.objects.all()
+    produits = Product.objects.all()
+    # Notifications fictives (à améliorer)
+    notifications = [
+        {'message': 'Nouvelle commande reçue !'},
+        {'message': 'Stock faible sur certains produits.'},
+    ]
+    return render(request, 'html/dashboard_boutiquier.html', {
+        'user': user,
+        'total_commandes': total_commandes,
+        'total_produits': total_produits,
+        'total_clients': total_clients,
+        'commandes': commandes,
+        'categories': categories,
+        'produits': produits,
+        'notifications': notifications,
+    })
 from django.shortcuts import get_object_or_404, render, redirect
 from django.core.paginator import Paginator
 from django.core.mail import send_mail
@@ -7,7 +118,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.contrib.auth.views import redirect_to_login
 from django.urls import reverse
-from .models import CartItem, Product, Commande, Category, Cart, Order, Wishlist, WishlistItem 
+from .models import CartItem, Product, Commande, Category, Cart, Order
 
 
 
@@ -329,57 +440,6 @@ def order_history(request):
 
 
 
-
-
-# -------------------------------------------
-# Vues pour la Wishlist
-# -------------------------------------------
-
-@login_required(login_url='login')
-def add_to_wishlist(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    user = request.user
-
-    # 1. Récupérer ou créer la Wishlist pour l'utilisateur
-    wishlist, created = Wishlist.objects.get_or_create(user=user)
-
-    # 2. Vérifier si l'article existe déjà
-    try:
-        WishlistItem.objects.create(wishlist=wishlist, product=product)
-        messages.success(request, f"✨ {product.title} a été ajouté à votre liste de souhaits.")
-    except Exception:
-        # Gère le cas où l'article existe déjà (dû à unique_together)
-        messages.info(request, f"ℹ️ {product.title} est déjà dans votre liste de souhaits.")
-        
-    # Redirige vers la page d'où l'utilisateur vient, ou vers la wishlist
-    return redirect(request.META.get('HTTP_REFERER', 'wishlist_view'))
-
-
-@login_required
-def wishlist_view(request):
-    try:
-        wishlist = Wishlist.objects.get(user=request.user)
-        wishlist_items = wishlist.items.all()
-    except Wishlist.DoesNotExist:
-        wishlist_items = []
-
-    return render(request, 'html/wishlist.html', {'wishlist_items': wishlist_items})
-
-
-@login_required
-def remove_from_wishlist(request, item_id):
-    # Cherche l'élément dans la wishlist de l'utilisateur connecté
-    item = get_object_or_404(
-        WishlistItem, 
-        id=item_id, 
-        wishlist__user=request.user # Sécurité: s'assure que l'élément appartient bien à l'utilisateur
-    )
-    
-    product_title = item.product.title
-    item.delete()
-    
-    messages.success(request, f"🗑️ {product_title} a été retiré de votre liste de souhaits.")
-    return redirect('wishlist_view')
 
 
 

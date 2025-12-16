@@ -53,6 +53,9 @@ class CustomLoginView(LoginView):
         return super().form_valid(form)
 
     def get_success_url(self):
+        user = self.request.user
+        if hasattr(user, 'role') and user.role == 'boutiquier':
+            return reverse_lazy('dashboard_boutiquier')
         return self.get_redirect_url() or reverse_lazy('Accueil')
 
 
