@@ -1,114 +1,376 @@
 {% extends "html/menu.html" %}
 
 {% block content %}
-
-    {% if message %}
-    <div style="background: #dff0d8; padding: 10px; color: #3c763d; margin: 20px; border-radius: 5px; text-align: center;">
-        {{ message }}
-    </div>
-    {% endif %}
-
-    
-    <!-- Section d'accueil améliorée -->
-    <div class="container text-center py-5 welcome-section">
-        <h1 class="display-4">Bienvenue sur <span class="brand-highlight">BryShop</span></h1>
-        <p class="lead">Explorez notre univers digital où l'élégance, la technologie et le confort se rencontrent pour vous offrir une expérience d'achat unique.</p>
-        <p class="mb-0">Découvrez une variété de produits sélectionnés avec soin. Qualité premium, prix attractifs, satisfaction garantie !</p>
-        <p class="text-muted">Livraison offerte à partir de 25 000 XAF • Paiement à la livraison, Orange Money ou PayPal • Assistance 24/7</p>
-        <a href="#" class="btn btn-success btn-lg mt-3">Commencer vos achats</a>
-    </div>
-
-    <!-- Barre de recherche -->
-    <div class="row mt-5">
-        <div class="col-md-12">
-            <form class="search-bar">
-                <div class="input-group">
-                    <input type="search" name="item-name" placeholder="Rechercher un produit..." class="form-control">
-                    <div class="input-group-append">
-                        <button class="btn btn-success" type="submit">Recherche</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Catalogue de produits -->
-    <div class="row mt-4">
-        {% for product in product_object %}
-        <div class="col-md-6 col-lg-3 mb-4">
-            <div class="card product-card">
-                <img src="{{ product.image.url }}" alt="{{ product.title}}">
-                <div class="card-body">
-                    <h5 id="aa{{product.id}}" class="card-title">{{product.title}}</h5>
-                    <p id="price{{ product.id}}" class="card-text">{{product.price}} <span class="text-info">XAF</span></p>
-                    <div class="d-flex justify-content-between">
-                        <a href="{{ product.id }}" class="btn btn-outline-warning">Aperçu</a>
-                        {% if user.is_authenticated %}
-                            <a href="{% url 'add_to_cart' product.id %}" class="btn btn-outline-success">Ajouter</a>
-                        {% else %}
-                            <a href="{% url 'login' %}?next={% url 'add_to_cart' product.id %}" class="btn btn-warning">Se connecter pour acheter</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-
-    <!-- Pagination -->
-    <div class="row mt-3">
-        <div class="col-md-12 d-flex justify-content-center">
-            <ul class="pagination">
-                {% if product_object.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{product_object.previous_page_number}}">Précédent</a>
-                    </li>
-                {% endif %}
-                <li class="page-item active">
-                    <a class="page-link" href="?page={{product_object.number}}">{{product_object.number}}</a>
-                </li>
-                {% if product_object.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{product_object.next_page_number}}">Suivant</a>
-                    </li>
-                {% endif %}
-            </ul>
-        </div>
-    </div>
-{% endblock %}
-
-{% block js %}
 <style>
-    body {
-        background: #f8f9fa;
-    }
-    .welcome-section {
-        background: linear-gradient(135deg, #f0fff0, #d0f0d0);
-        border-radius: 15px;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    }
-    .brand-highlight {
-        color: #28a745;
-        font-weight: bold;
-    }
-    .search-bar {
-        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        border-radius: 8px;
-    }
-    .product-card {
-        border: none;
-        border-radius: 15px;
-        transition: all 0.3s ease-in-out;
-        background-color: #fff;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-    }
-    .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-    }
-    .pagination .page-link {
-        border-radius: 50px;
-    }
+.hero-section {
+  background: linear-gradient(135deg, #ffffff 0%, #a8e6cf 100%);
+  border-radius: 24px;
+  padding: 4rem 2rem;
+  margin: 3rem 0;
+  box-shadow: 0 8px 32px rgba(46, 204, 113, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(46, 204, 113, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+}
+
+.brand-name {
+  background: linear-gradient(135deg, #2ecc71, #56c596);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 2px 2px 4px rgba(46, 204, 113, 0.1);
+}
+
+.hero-description {
+  font-size: 1.25rem;
+  color: #34495e;
+  margin-bottom: 1rem;
+  line-height: 1.8;
+}
+
+.hero-features {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.feature-badge {
+  background: rgba(46, 204, 113, 0.1);
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 600;
+  color: #27ae60;
+  border: 2px solid #a8e6cf;
+}
+
+.search-container {
+  background: white;
+  border-radius: 50px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  margin: 2rem 0;
+  transition: all 0.3s ease;
+}
+
+.search-container:hover {
+  box-shadow: 0 12px 32px rgba(46, 204, 113, 0.2);
+}
+
+.search-input {
+  border: none;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  background: transparent;
+}
+
+.search-input:focus {
+  outline: none;
+}
+
+.search-btn {
+  background: linear-gradient(135deg, #2ecc71, #56c596);
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 50px;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.search-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  margin: 3rem 0;
+}
+
+.product-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 12px 32px rgba(46, 204, 113, 0.2);
+}
+
+.product-image {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.08);
+}
+
+.product-body {
+  padding: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 0.75rem;
+  min-height: 50px;
+  line-height: 1.4;
+}
+
+.product-price {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #2ecc71;
+  margin-bottom: 1rem;
+}
+
+.currency {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #56c596;
+}
+
+.product-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+.btn-preview {
+  flex: 1;
+  background: transparent;
+  border: 2px solid #2ecc71;
+  color: #2ecc71;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-preview:hover {
+  background: #2ecc71;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.btn-add-cart {
+  flex: 1;
+  background: linear-gradient(135deg, #2ecc71, #56c596);
+  border: none;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-add-cart:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin: 3rem 0;
+}
+
+.pagination {
+  display: flex;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+}
+
+.page-item {
+  margin: 0;
+}
+
+.page-link {
+  border: none;
+  background: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  color: #2ecc71;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.page-item.active .page-link {
+  background: linear-gradient(135deg, #2ecc71, #56c596);
+  color: white;
+}
+
+.page-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
+  color: #27ae60;
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .hero-description {
+    font-size: 1rem;
+  }
+  
+  .hero-features {
+    gap: 0.75rem;
+  }
+  
+  .feature-badge {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+  }
+  
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+}
 </style>
+
+<div class="hero-section">
+  <div class="hero-content text-center">
+    <h1 class="hero-title">
+      Bienvenue sur <span class="brand-name">BryShop</span>
+    </h1>
+    <p class="hero-description">
+      <i class="bi bi-stars me-2"></i>
+      Votre marketplace premium pour une expérience d'achat unique
+    </p>
+    <p class="text-muted mb-4">
+      Découvrez une sélection de produits de qualité, livrés avec soin à votre porte
+    </p>
+    
+    <div class="hero-features">
+      <span class="feature-badge">
+        <i class="bi bi-truck me-2"></i>Livraison offerte dès 25 000 XAF
+      </span>
+      <span class="feature-badge">
+        <i class="bi bi-shield-check me-2"></i>Paiement sécurisé
+      </span>
+      <span class="feature-badge">
+        <i class="bi bi-headset me-2"></i>Support 24/7
+      </span>
+    </div>
+    
+    <a href="{% url 'nos_produits' %}" class="btn btn-add-cart btn-lg mt-3">
+      <i class="bi bi-bag-heart me-2"></i>Explorer le catalogue
+    </a>
+  </div>
+</div>
+
+<div class="search-container">
+  <form class="d-flex" method="GET" action="{% url 'Accueil' %}">
+    <input 
+      type="search" 
+      name="search" 
+      class="form-control search-input flex-grow-1" 
+      placeholder="Rechercher un produit, une catégorie..."
+      aria-label="Recherche"
+    >
+    <button class="search-btn" type="submit">
+      <i class="bi bi-search me-2"></i>Rechercher
+    </button>
+  </form>
+</div>
+
+<div class="product-grid">
+  {% for product in product_object %}
+  <div class="product-card">
+    <img src="{{ product.image.url }}" alt="{{ product.title }}" class="product-image">
+    <div class="product-body">
+      <h5 id="aa{{product.id}}" class="product-title">{{ product.title }}</h5>
+      <div id="price{{ product.id }}" class="product-price">
+        {{ product.price }} <span class="currency">XAF</span>
+      </div>
+      <div class="product-actions">
+        <a href="{{ product.id }}" class="btn-preview">
+          <i class="bi bi-eye me-1"></i>Aperçu
+        </a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'add_to_cart' product.id %}" class="btn-add-cart">
+          <i class="bi bi-cart-plus me-1"></i>Ajouter
+        </a>
+        {% else %}
+        <a href="{% url 'login' %}?next={% url 'add_to_cart' product.id %}" class="btn-add-cart">
+          <i class="bi bi-lock me-1"></i>Connexion
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="pagination-container">
+  <ul class="pagination">
+    {% if product_object.has_previous %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ product_object.previous_page_number }}">
+        <i class="bi bi-chevron-left"></i> Précédent
+      </a>
+    </li>
+    {% endif %}
+    
+    <li class="page-item active">
+      <a class="page-link" href="?page={{ product_object.number }}">
+        {{ product_object.number }}
+      </a>
+    </li>
+    
+    {% if product_object.has_next %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ product_object.next_page_number }}">
+        Suivant <i class="bi bi-chevron-right"></i>
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+</div>
 
 {% endblock %}
