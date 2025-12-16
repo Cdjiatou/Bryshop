@@ -1,66 +1,336 @@
 {% extends 'html/menu.html' %}
 
 {% block content %}
-<div class="container py-5">
-    <h2 class="mb-4 text-center text-primary">🛒 Mon Panier</h2>
+<style>
+.cart-header {
+  text-align: center;
+  margin: 3rem 0 2rem;
+}
 
-    {% if cart_items %}
-    <div class="table-responsive shadow rounded">
-        <table class="table align-middle table-hover">
-            <thead class="table-primary">
-                <tr>
-                    <th>Produit</th>
-                    <th class="text-center">Quantité</th>
-                    <th class="text-end">Prix Unitaire</th>
-                    <th class="text-end">Sous-total</th>
-                    <th class="text-center">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in cart_items %}
-                <tr>
-                    <td>{{ item.product.title }}</td>
-                    <td class="text-center">
-                        <div class="d-flex justify-content-center align-items-center">
-                            <a href="{% url 'update_cart_quantity' item.id 'decrement' %}" class="btn btn-outline-secondary btn-sm me-2">
-                                <i class="bi bi-dash"></i>
-                            </a>
-                            <span class="fw-bold">{{ item.quantity }}</span>
-                            <a href="{% url 'update_cart_quantity' item.id 'increment' %}" class="btn btn-outline-secondary btn-sm ms-2">
-                                <i class="bi bi-plus"></i>
-                            </a>
-                        </div>
-                    </td>
-                    <td class="text-end">{{ item.product.price }} XAF</td>
-                    <td class="text-end">{{ item.product.price|floatformat:2 }} x {{ item.quantity }} = {{ item.product.price|floatformat:2|floatformat:2 }} XAF</td>
+.cart-icon {
+  font-size: 4rem;
+  color: #2ecc71;
+  margin-bottom: 1rem;
+}
 
-                    <td class="text-center">
-                        <a href="{% url 'remove_from_cart' item.id %}"
-                           class="btn btn-danger btn-sm"
-                           onclick="return confirm('Voulez-vous vraiment supprimer ce produit du panier ?');">
-                           <i class="bi bi-trash"></i> Supprimer
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+.cart-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
 
-    <div class="d-flex justify-content-between align-items-center mt-4">
-        <h4 class="text-dark">Total : <span class="text-success">{{ total }} XAF</span></h4>
-        <a href="{% url 'checkout' %}" class="btn btn-success btn-lg">
-            <i class="bi bi-credit-card"></i> Valider la commande
-        </a>
-    </div>
+.cart-container {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
 
-    {% else %}
-    <div class="alert alert-warning text-center mt-5">
-        <h5>Votre panier est vide.</h5>
-        <a href="{% url 'nos_produits' %}" class="btn btn-outline-primary mt-3">
-            Explorer nos produits
-        </a>
-    </div>
-    {% endif %}
+.table-container {
+  overflow-x: auto;
+  border-radius: 16px;
+}
+
+.cart-table {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.cart-table thead {
+  background: linear-gradient(135deg, #a8e6cf, #7bed9f);
+}
+
+.cart-table thead th {
+  padding: 1.25rem;
+  font-weight: 700;
+  color: #27ae60;
+  border: none;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.5px;
+}
+
+.cart-table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.cart-table tbody tr:hover {
+  background-color: #f8f9fa;
+  transform: scale(1.01);
+}
+
+.cart-table tbody td {
+  padding: 1.5rem;
+  vertical-align: middle;
+}
+
+.product-name {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.qty-btn {
+  width: 35px;
+  height: 35px;
+  border-radius: 8px;
+  border: 2px solid #2ecc71;
+  background: white;
+  color: #2ecc71;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qty-btn:hover {
+  background: #2ecc71;
+  color: white;
+  transform: scale(1.1);
+}
+
+.qty-display {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #2c3e50;
+  min-width: 30px;
+  text-align: center;
+}
+
+.price-cell {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2ecc71;
+}
+
+.subtotal-cell {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #27ae60;
+}
+
+.delete-btn {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  border: none;
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.cart-summary {
+  background: linear-gradient(135deg, #f8f9fa, #e8f5e9);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.total-amount {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #2c3e50;
+}
+
+.total-label {
+  font-size: 1.25rem;
+  color: #34495e;
+  margin-right: 1rem;
+}
+
+.total-value {
+  color: #2ecc71;
+}
+
+.checkout-btn {
+  background: linear-gradient(135deg, #2ecc71, #56c596);
+  border: none;
+  padding: 1rem 2.5rem;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(46, 204, 113, 0.3);
+}
+
+.checkout-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(46, 204, 113, 0.4);
+}
+
+.empty-cart {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.empty-icon {
+  font-size: 5rem;
+  color: #95a5a6;
+  margin-bottom: 1.5rem;
+}
+
+.empty-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.empty-description {
+  color: #7f8c8d;
+  margin-bottom: 2rem;
+}
+
+.shop-btn {
+  background: linear-gradient(135deg, #2ecc71, #56c596);
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.shop-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 16px rgba(46, 204, 113, 0.3);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .cart-title {
+    font-size: 2rem;
+  }
+  
+  .cart-container {
+    padding: 1rem;
+  }
+  
+  .cart-table thead th,
+  .cart-table tbody td {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  .cart-summary {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .checkout-btn {
+    width: 100%;
+  }
+}
+</style>
+
+<div class="cart-header">
+  <div class="cart-icon">
+    <i class="bi bi-cart-check"></i>
+  </div>
+  <h2 class="cart-title">Mon Panier</h2>
 </div>
+
+{% if cart_items %}
+<div class="cart-container">
+  <div class="table-container">
+    <table class="cart-table">
+      <thead>
+        <tr>
+          <th>Produit</th>
+          <th class="text-center">Quantité</th>
+          <th class="text-end">Prix Unitaire</th>
+          <th class="text-end">Sous-total</th>
+          <th class="text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in cart_items %}
+        <tr>
+          <td>
+            <div class="product-name">{{ item.product.title }}</div>
+          </td>
+          <td>
+            <div class="quantity-controls">
+              <a href="{% url 'update_cart_quantity' item.id 'decrement' %}" class="qty-btn">
+                <i class="bi bi-dash"></i>
+              </a>
+              <span class="qty-display">{{ item.quantity }}</span>
+              <a href="{% url 'update_cart_quantity' item.id 'increment' %}" class="qty-btn">
+                <i class="bi bi-plus"></i>
+              </a>
+            </div>
+          </td>
+          <td class="text-end price-cell">{{ item.product.price|floatformat:0 }} XAF</td>
+          <td class="text-end subtotal-cell">
+            {{ item.product.price|floatformat:0 }} × {{ item.quantity }} = 
+            {% widthratio item.product.price 1 item.quantity %} XAF
+          </td>
+          <td class="text-center">
+            <a href="{% url 'remove_from_cart' item.id %}" 
+               class="delete-btn"
+               onclick="return confirm('Voulez-vous vraiment supprimer ce produit ?');">
+              <i class="bi bi-trash"></i> Supprimer
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cart-summary">
+    <div class="total-amount">
+      <span class="total-label">Total :</span>
+      <span class="total-value">{{ total|floatformat:0 }} XAF</span>
+    </div>
+    <a href="{% url 'checkout' %}" class="checkout-btn">
+      <i class="bi bi-credit-card me-2"></i>Valider la commande
+    </a>
+  </div>
+</div>
+
+{% else %}
+<div class="cart-container">
+  <div class="empty-cart">
+    <div class="empty-icon">
+      <i class="bi bi-cart-x"></i>
+    </div>
+    <h3 class="empty-title">Votre panier est vide</h3>
+    <p class="empty-description">
+      Découvrez nos produits et ajoutez vos articles préférés
+    </p>
+    <a href="{% url 'nos_produits' %}" class="shop-btn">
+      <i class="bi bi-bag me-2"></i>Explorer le catalogue
+    </a>
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}

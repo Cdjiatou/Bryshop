@@ -1,35 +1,407 @@
 {% extends 'html/menu.html' %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="card shadow-lg p-4">
-        <h2 class="text-center text-success mb-4">🎉 Merci pour votre commande !</h2>
-        <p class="lead text-center">Voici le récapitulatif de votre commande :</p>
+<style>
+.checkout-container {
+  max-width: 900px;
+  margin: 3rem auto;
+}
 
-        {% if cart_items %}
-        <ul class="list-group mb-4">
-            {% for item in cart_items %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>{{ item.product.title }}</strong> <br>
-                    <small class="text-muted">Quantité : {{ item.quantity }}</small>
-                </div>
-                <span class="badge bg-primary rounded-pill">{{ item.product.price|floatformat:0 }} x {{ item.quantity }} = {{ item.product.price|floatformat:0|add:item.quantity|floatformat:0 }} XAF</span>
-            </li>
-            {% endfor %}
-        </ul>
+.success-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  animation: slideDown 0.6s ease-out;
+}
 
-        <div class="text-end">
-            <h4>Total à payer : <span class="text-success fw-bold">{{ total_price }} XAF</span></h4>
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-            <form method="post" action="{% url 'place_order' %}">
-                {% csrf_token %}
-                <button class="btn btn-lg btn-success mt-3">✅ Confirmer la commande</button>
-            </form>
-        </div>
-        {% else %}
-            <p class="text-muted text-center mt-4">Votre panier est vide.</p>
-        {% endif %}
+.success-icon {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #2ecc71, #56c596);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  box-shadow: 0 8px 24px rgba(46, 204, 113, 0.3);
+  animation: bounce 1s ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.success-icon i {
+  font-size: 3rem;
+  color: white;
+}
+
+.success-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.success-subtitle {
+  font-size: 1.1rem;
+  color: #7f8c8d;
+}
+
+.checkout-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 3px solid #a8e6cf;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.order-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  background: #f8f9fa;
+  transition: all 0.3s ease;
+}
+
+.order-item:hover {
+  background: #e8f5e9;
+  transform: translateX(5px);
+}
+
+.item-details {
+  flex: 1;
+}
+
+.item-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+}
+
+.item-quantity {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+.item-price {
+  background: linear-gradient(135deg, #2ecc71, #56c596);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.2);
+}
+
+.summary-section {
+  background: linear-gradient(135deg, #f8f9fa, #e8f5e9);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  font-size: 1rem;
+  color: #2c3e50;
+}
+
+.summary-row.total {
+  border-top: 2px solid #a8e6cf;
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.total-label {
+  color: #2c3e50;
+}
+
+.total-amount {
+  color: #2ecc71;
+}
+
+.payment-methods {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.payment-option {
+  position: relative;
+}
+
+.payment-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.payment-label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.payment-option input[type="radio"]:checked + .payment-label {
+  border-color: #2ecc71;
+  background: linear-gradient(135deg, rgba(46, 204, 113, 0.05), rgba(168, 230, 207, 0.1));
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.15);
+}
+
+.payment-label:hover {
+  border-color: #a8e6cf;
+  transform: translateX(5px);
+}
+
+.payment-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #2ecc71, #56c596);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.payment-info {
+  flex: 1;
+}
+
+.payment-name {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 1.05rem;
+  margin-bottom: 0.25rem;
+}
+
+.payment-desc {
+  font-size: 0.875rem;
+  color: #7f8c8d;
+}
+
+.confirm-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #2ecc71, #56c596);
+  border: none;
+  padding: 1.25rem;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(46, 204, 113, 0.3);
+  margin-top: 2rem;
+}
+
+.confirm-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(46, 204, 113, 0.4);
+}
+
+.empty-cart {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.empty-icon {
+  font-size: 5rem;
+  color: #95a5a6;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .success-title {
+    font-size: 2rem;
+  }
+  
+  .checkout-card {
+    padding: 1.5rem;
+  }
+  
+  .order-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .item-price {
+    align-self: flex-end;
+  }
+}
+</style>
+
+<div class="checkout-container">
+  <div class="success-header">
+    <div class="success-icon">
+      <i class="bi bi-check-circle-fill"></i>
     </div>
+    <h2 class="success-title">Merci pour votre commande !</h2>
+    <p class="success-subtitle">Voici le récapitulatif de votre panier</p>
+  </div>
+
+  {% if cart_items %}
+  <div class="checkout-card">
+    <h3 class="section-title">
+      <i class="bi bi-bag-check"></i>
+      Mes articles
+    </h3>
+    
+    <ul class="order-list">
+      {% for item in cart_items %}
+      <li class="order-item">
+        <div class="item-details">
+          <div class="item-name">{{ item.product.title }}</div>
+          <div class="item-quantity">Quantité : {{ item.quantity }}</div>
+        </div>
+        <div class="item-price">
+          {{ item.product.price|floatformat:0 }} × {{ item.quantity }} = 
+          {% widthratio item.product.price 1 item.quantity %} XAF
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <div class="summary-section">
+      <div class="summary-row">
+        <span>Sous-total</span>
+        <span class="fw-bold">{{ total_price|floatformat:0 }} XAF</span>
+      </div>
+      <div class="summary-row">
+        <span>Frais de livraison</span>
+        <span class="fw-bold">{{ frais_livraison|floatformat:0 }} XAF</span>
+      </div>
+      <div class="summary-row total">
+        <span class="total-label">Total à payer</span>
+        <span class="total-amount">{{ total_avec_livraison|floatformat:0 }} XAF</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="checkout-card">
+    <h3 class="section-title">
+      <i class="bi bi-credit-card"></i>
+      Mode de paiement
+    </h3>
+    
+    <form method="post" action="{% url 'place_order' %}">
+      {% csrf_token %}
+      <div class="payment-methods">
+        <div class="payment-option">
+          <input type="radio" name="mode_paiement" id="livraison" value="livraison" checked>
+          <label for="livraison" class="payment-label">
+            <div class="payment-icon">
+              <i class="bi bi-cash-coin" style="color: white;"></i>
+            </div>
+            <div class="payment-info">
+              <div class="payment-name">Paiement à la livraison</div>
+              <div class="payment-desc">Payez en espèces à la réception</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="payment-option">
+          <input type="radio" name="mode_paiement" id="orange_money" value="orange_money">
+          <label for="orange_money" class="payment-label">
+            <div class="payment-icon" style="background: linear-gradient(135deg, #ff6b00, #ff8c3a);">
+              <i class="bi bi-phone" style="color: white;"></i>
+            </div>
+            <div class="payment-info">
+              <div class="payment-name">Orange Money</div>
+              <div class="payment-desc">Paiement mobile sécurisé</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="payment-option">
+          <input type="radio" name="mode_paiement" id="mtn_money" value="mtn_money">
+          <label for="mtn_money" class="payment-label">
+            <div class="payment-icon" style="background: linear-gradient(135deg, #ffcb05, #ffd93d);">
+              <i class="bi bi-phone" style="color: #2c3e50;"></i>
+            </div>
+            <div class="payment-info">
+              <div class="payment-name">MTN Mobile Money</div>
+              <div class="payment-desc">Paiement mobile sécurisé</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="payment-option">
+          <input type="radio" name="mode_paiement" id="carte_bancaire" value="carte_bancaire">
+          <label for="carte_bancaire" class="payment-label">
+            <div class="payment-icon" style="background: linear-gradient(135deg, #3498db, #5dade2);">
+              <i class="bi bi-credit-card" style="color: white;"></i>
+            </div>
+            <div class="payment-info">
+              <div class="payment-name">Carte bancaire</div>
+              <div class="payment-desc">Visa, Mastercard acceptées</div>
+            </div>
+          </label>
+        </div>
+      </div>
+      
+      <button type="submit" class="confirm-btn">
+        <i class="bi bi-check-circle me-2"></i>Confirmer la commande
+      </button>
+    </form>
+  </div>
+
+  {% else %}
+  <div class="checkout-card">
+    <div class="empty-cart">
+      <div class="empty-icon">
+        <i class="bi bi-cart-x"></i>
+      </div>
+      <p class="text-muted">Votre panier est vide.</p>
+    </div>
+  </div>
+  {% endif %}
 </div>
+
 {% endblock %}
