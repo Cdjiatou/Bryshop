@@ -77,6 +77,7 @@ TEMPLATES = [
                 'BRYSHOP.context_processors.categories_processor',
             ],
         },
+        'DIRS': [os.path.join(BASE_DIR, 'templates')], 
     },
 ]
 

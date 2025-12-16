@@ -1,4 +1,5 @@
 from django.urls import path, include
+from BRYSHOP import dashboard_views
 from BRYSHOP.views import index, detail, checkout, confirmation, product_by_category, nos_produits,contact_views
 from . import views
 urlpatterns = [
@@ -17,7 +18,13 @@ urlpatterns = [
     path('cart/update/<int:cart_item_id>/<str:action>/', views.update_cart_quantity, name='update_cart_quantity'),
     path('mes-commandes/', views.mes_commandes, name='mes_commandes'),
 
-
+    path('dashboard/', dashboard_views.admin_dashboard, name='admin_dashboard'), 
+    path('historique-commandes/', views.order_history, name='order_history'), 
+    # Wishlist
+    path('wishlist/', views.wishlist_view, name='wishlist_view'),
+    path('wishlist/add/<int:product_id>/', views.add_to_wishlist, name='add_to_wishlist'),
+    path('wishlist/remove/<int:item_id>/', views.remove_from_wishlist, name='remove_from_wishlist'),
+    path('dashboard/clients/', dashboard_views.manage_clients, name='admin_manage_clients'), 
 
 
 
