@@ -40,6 +40,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -167,4 +168,155 @@ MESSAGE_TAGS = {
     messages.SUCCESS: 'alert-success',
     messages.WARNING: 'alert-warning',
     messages.ERROR: 'alert-danger',
+}
+
+
+# Configuration Jazzmin pour BryShop
+JAZZMIN_SETTINGS = {
+    # Titre du site
+    "site_title": "BryShop Admin",
+    "site_header": "BryShop",
+    "site_brand": "BryShop Administration",
+    "site_logo": None,  # Chemin vers ton logo (ex: "images/logo.png")
+    "login_logo": None,
+    "site_logo_classes": "img-circle",
+    "site_icon": None,
+    
+    # Message de bienvenue sur l'écran de connexion
+    "welcome_sign": "Bienvenue sur BryShop Admin",
+    
+    # Copyright dans le footer
+    "copyright": "BryShop © 2025",
+    
+    # Recherche dans le modèle depuis la barre latérale
+    "search_model": ["auth.User", "BRYSHOP.Product"],
+    
+    # Nom du champ à utiliser pour l'utilisateur
+    "user_avatar": None,
+    
+    ############
+    # Top Menu #
+    ############
+    
+    # Liens dans le menu supérieur
+    "topmenu_links": [
+        {"name": "Accueil", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Voir le site", "url": "/", "new_window": True},
+        {"model": "auth.User"},
+        {"app": "BRYSHOP"},
+    ],
+    
+    #############
+    # User Menu #
+    #############
+    
+    # Liens supplémentaires à inclure dans le menu utilisateur
+    "usermenu_links": [
+        {"name": "Voir le site", "url": "/", "new_window": True},
+        {"model": "auth.user"}
+    ],
+    
+    #############
+    # Side Menu #
+    #############
+    
+    # Afficher le nom du sidebar ou non
+    "show_sidebar": True,
+    
+    # Toujours afficher le menu latéral (sinon il est caché sur mobile)
+    "navigation_expanded": True,
+    
+    # Masquer les applications et les modèles
+    "hide_apps": [],
+    "hide_models": [],
+    
+    # Ordre des applications dans le menu latéral
+    "order_with_respect_to": ["auth", "BRYSHOP", "accounts"],
+    
+    # Icônes personnalisées pour les applications/modèles
+    # https://fontawesome.com/icons?d=gallery&m=free
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        
+        "BRYSHOP.Product": "fas fa-box",
+        "BRYSHOP.Category": "fas fa-tags",
+        "BRYSHOP.Cart": "fas fa-shopping-cart",
+        "BRYSHOP.Order": "fas fa-file-invoice",
+        
+        "accounts.Client": "fas fa-user-tie",
+    },
+    
+    # Icônes pour les modèles (même format que ci-dessus)
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    
+    #################
+    # Related Modal #
+    #################
+    
+    # Utiliser des modales au lieu de popups
+    "related_modal_active": False,
+    
+    #############
+    # UI Tweaks #
+    #############
+    
+    # Personnalisation CSS/JS relative aux modèles et/ou applications
+    "custom_css": None,
+    "custom_js": None,
+    
+    # Afficher le bouton de navigation latéral
+    "show_ui_builder": False,
+    
+    ###############
+    # Change view #
+    ###############
+    
+    # Rendu du formulaire de changement en mode simple ou onglets
+    "changeform_format": "horizontal_tabs",
+    
+    # Remplacer les changelist avec des vues personnalisées
+    "changeform_format_overrides": {
+        "auth.user": "collapsible",
+        "auth.group": "vertical_tabs"
+    },
+    
+    # Ajouter un bouton de langue
+    "language_chooser": False,
+}
+
+# Configuration des couleurs et du thème
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-success",  # Vert pour BryShop
+    "accent": "accent-success",  # Vert accent
+    "navbar": "navbar-white navbar-light",
+    "no_navbar_border": False,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-success",  # Sidebar vert foncé
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "default",  # Options: default, cerulean, cosmo, etc.
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    },
+    "actions_sticky_top": True
 }

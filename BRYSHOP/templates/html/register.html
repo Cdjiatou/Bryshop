@@ -2,102 +2,285 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <title>Inscription | BryShop</title>
+  
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #74ebd5, #acb6e5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
 
-    .form-container {
-      background-color: #ffffff;
-      padding: 40px 30px;
-      border-radius: 15px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 500px;
-      text-align: center;
-    }
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #a8e6cf 0%, #56c596 50%, #2ecc71 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
 
-    .form-container h2 {
-      margin-bottom: 25px;
-      color: #333;
-    }
+body::before {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+  top: -200px;
+  right: -200px;
+  border-radius: 50%;
+  animation: float 6s ease-in-out infinite;
+}
 
-    .form-container img {
-      width: 80px;
-      margin-bottom: 20px;
-    }
+body::after {
+  content: '';
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+  bottom: -150px;
+  left: -150px;
+  border-radius: 50%;
+  animation: float 8s ease-in-out infinite reverse;
+}
 
-    form {
-      text-align: left;
-    }
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(20px); }
+}
 
-    form p {
-      margin-bottom: 15px;
-    }
+.registration-container {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  padding: 3rem 2.5rem;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 550px;
+  position: relative;
+  z-index: 1;
+  animation: slideUp 0.6s ease-out;
+}
 
-    form input, form select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 14px;
-      margin-top: 5px;
-    }
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-    button {
-      background-color: #4CAF50;
-      color: white;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      width: 100%;
-      margin-top: 20px;
-      transition: background 0.3s ease;
-    }
+.header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
 
-    button:hover {
-      background-color: #45a049;
-    }
+.logo {
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(135deg, #2ecc71, #56c596);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  box-shadow: 0 8px 16px rgba(46, 204, 113, 0.3);
+  animation: bounce 2s ease-in-out infinite;
+}
 
-    p {
-      margin-top: 20px;
-      font-size: 14px;
-      text-align: center;
-    }
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
 
-    p a {
-      color: #007bff;
-      text-decoration: none;
-    }
+.logo i {
+  font-size: 2.5rem;
+  color: white;
+}
 
-    p a:hover {
-      text-decoration: underline;
-    }
+.header h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.header p {
+  color: #7f8c8d;
+  font-size: 1rem;
+}
+
+form {
+  margin-bottom: 1.5rem;
+}
+
+form p {
+  margin-bottom: 1.5rem;
+}
+
+form label {
+  display: block;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+form input,
+form select {
+  width: 100%;
+  padding: 0.95rem 1.25rem;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+  color: #2c3e50;
+}
+
+form input:focus,
+form select:focus {
+  outline: none;
+  border-color: #2ecc71;
+  box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.1);
+  transform: translateY(-2px);
+}
+
+form input::placeholder {
+  color: #95a5a6;
+}
+
+.submit-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #2ecc71, #56c596);
+  border: none;
+  padding: 1.1rem;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(46, 204, 113, 0.3);
+  margin-top: 1rem;
+}
+
+.submit-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(46, 204, 113, 0.4);
+}
+
+.submit-btn:active {
+  transform: translateY(-1px);
+}
+
+.footer-text {
+  text-align: center;
+  color: #7f8c8d;
+  font-size: 0.95rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.footer-text a {
+  color: #2ecc71;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.footer-text a:hover {
+  color: #27ae60;
+  text-decoration: underline;
+}
+
+.error-message {
+  background: #ffe5e5;
+  border-left: 4px solid #e74c3c;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  color: #721c24;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.helptext {
+  display: block;
+  font-size: 0.85rem;
+  color: #95a5a6;
+  margin-top: 0.35rem;
+}
+
+ul.errorlist {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0 0;
+}
+
+ul.errorlist li {
+  background: #ffe5e5;
+  border-left: 3px solid #e74c3c;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #721c24;
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .registration-container {
+    padding: 2rem 1.5rem;
+  }
+  
+  .header h2 {
+    font-size: 1.75rem;
+  }
+  
+  .logo {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .logo i {
+    font-size: 2rem;
+  }
+}
   </style>
 </head>
 <body>
-  <div class="form-container">
-    <h2>Créer un compte client</h2>
-    <img src="https://cdn-icons-png.flaticon.com/512/5087/5087579.png" alt="Inscription">
+  <div class="registration-container">
+    <div class="header">
+      <div class="logo">
+        <i class="bi bi-person-plus-fill"></i>
+      </div>
+      <h2>Créer un compte</h2>
+      <p>Rejoignez BryShop et profitez d'une expérience unique</p>
+    </div>
     
     <form method="POST">
       {% csrf_token %}
       {{ user_form.as_p }}
       {{ client_form.as_p }}
-      <button type="submit">S'inscrire</button>
+      <button type="submit" class="submit-btn">
+        <i class="bi bi-check-circle me-2"></i>S'inscrire
+      </button>
     </form>
 
-    <p>Déjà inscrit ? <a href="{% url 'login' %}">Se connecter</a></p>
+    <div class="footer-text">
+      Déjà inscrit ? <a href="{% url 'login' %}">Se connecter</a>
+    </div>
   </div>
 </body>
 </html>
