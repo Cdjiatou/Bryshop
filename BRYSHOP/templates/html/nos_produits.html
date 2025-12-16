@@ -115,7 +115,11 @@
 <div class="product-list">
   {% for product in produits %}
   <div class="product-card-horizontal">
-    <img src="{{ product.image.url }}" alt="{{ product.title }}" class="product-image">
+    {% if product.image %}
+      <img src="{{ product.image.url }}" alt="{{ product.title }}" class="product-image">
+    {% else %}
+      <img src="https://via.placeholder.com/300x200/cccccc/666666?text=Pas+d%27image" alt="{{ product.title }}" class="product-image">
+    {% endif %}
     <div class="product-content">
       <div>
         <h3 class="product-title">{{ product.title }}</h3>

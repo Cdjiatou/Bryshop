@@ -5,7 +5,11 @@
         <div class="row product-detail align-items-stretch">
             <div class="col-md-6 mb-4 mb-md-0">
                 <div class="image-container h-100">
-                    <img src="{{ product.image.url }}" class="img-fluid h-100 w-100 object-cover rounded" alt="{{ product.title }}">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" class="img-fluid h-100 w-100 object-cover rounded" alt="{{ product.title }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/500x500/cccccc/666666?text=Pas+d%27image" class="img-fluid h-100 w-100 object-cover rounded" alt="{{ product.title }}">
+                    {% endif %}
                 </div>
                 
             </div>

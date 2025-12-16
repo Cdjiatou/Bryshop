@@ -53,7 +53,11 @@
         {% for produit in produits %}
         <div class="col-md-4">
             <div class="product-card">
-                <img src="{{ produit.image.url }}" alt="{{ produit.title }}" class="product-img">
+                {% if produit.image %}
+                    <img src="{{ produit.image.url }}" alt="{{ produit.title }}" class="product-img">
+                {% else %}
+                    <img src="https://via.placeholder.com/300x200/cccccc/666666?text=Pas+d%27image" alt="{{ produit.title }}" class="product-img">
+                {% endif %}
                 <div class="product-body">
                     <h5 id="aa{{ produit.id }}" class="product-title">{{ produit.title }}</h5>
                     <p class="product-description">{{ produit.description|truncatechars:100 }}</p>

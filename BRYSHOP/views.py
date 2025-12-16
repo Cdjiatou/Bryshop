@@ -125,10 +125,8 @@ def dashboard_boutiquier(request):
 import uuid
 from django.utils import timezone
 from datetime import datetime
-from .utils import initialize_notch_payment, verify_notch_transaction 
-=======
-from .models import CartItem, Product, Commande, Category, Cart, Order
->>>>>>> origin/main
+from .utils import initialize_notch_payment, verify_notch_transaction
+from .models import CartItem, Product, Commande, Category, Cart, Order, Payment, Wishlist, WishlistItem
 
 
 

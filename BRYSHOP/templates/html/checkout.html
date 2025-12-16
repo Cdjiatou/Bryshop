@@ -24,91 +24,6 @@
   }
 }
 
-        <div class="mt-4">
-            <h5 class="mb-3">💳 Mode de paiement</h5>
-            <form method="post" action="{% url 'place_order' %}">
-                {% csrf_token %}
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="mode_paiement" id="livraison" value="livraison"
-                        checked>
-                    <label class="form-check-label" for="livraison">
-                        💵 Paiement à la livraison
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="mode_paiement" id="orange_money"
-                        value="orange_money">
-                    <label class="form-check-label" for="orange_money">
-                        🟠 Orange Money
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="mode_paiement" id="mtn_money" value="mtn_money">
-                    <label class="form-check-label" for="mtn_money">
-                        🟡 MTN Mobile Money
-                    </label>
-                </div>
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="radio" name="mode_paiement" id="carte_bancaire"
-                        value="carte_bancaire">
-                    <label class="form-check-label" for="carte_bancaire">
-                        💳 Carte bancaire
-                    </label>
-                </div>
-
-                <!-- Section cartes sauvegardées -->
-                {% if user_cards %}
-                <div id="saved-cards-section" class="mt-3" style="display: none;">
-                    <h6 class="text-primary mb-3">Sélectionnez une carte sauvegardée :</h6>
-                    <div class="row">
-                        {% for card in user_cards %}
-                        <div class="col-md-6 mb-2">
-                            <div class="card border {% if card.is_default %}border-primary{% endif %}">
-                                <div class="card-body p-2">
-                                    <div class="form-check mb-0">
-                                        <input class="form-check-input" type="radio" name="selected_card"
-                                               id="card_{{ card.id }}" value="{{ card.id }}"
-                                               {% if card.is_default %}checked{% endif %}>
-                                        <label class="form-check-label w-100" for="card_{{ card.id }}">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    {% if card.card_type == 'visa' %}
-                                                        <i class="bi bi-credit-card text-primary"></i>
-                                                    {% elif card.card_type == 'mastercard' %}
-                                                        <i class="bi bi-credit-card text-warning"></i>
-                                                    {% else %}
-                                                        <i class="bi bi-credit-card"></i>
-                                                    {% endif %}
-                                                    <strong>{{ card.masked_number }}</strong>
-                                                    <br>
-                                                    <small class="text-muted">{{ card.cardholder_name }}</small>
-                                                </div>
-                                                {% if card.is_default %}
-                                                    <span class="badge bg-primary">Défaut</span>
-                                                {% endif %}
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <div class="mt-2">
-                        <a href="{% url 'ajouter_carte' %}" class="btn btn-outline-primary btn-sm">
-                            <i class="bi bi-plus-circle"></i> Ajouter une nouvelle carte
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
-                <div class="text-end">
-                    <button type="submit" class="btn btn-lg btn-success">✅ Confirmer la commande</button>
-                </div>
-            </form>
-        </div>
-        {% else %}
-        <p class="text-muted text-center mt-4">Votre panier est vide.</p>
-        {% endif %}
 .success-icon {
   width: 100px;
   height: 100px;
@@ -345,22 +260,108 @@
   .success-title {
     font-size: 2rem;
   }
-  
+
   .checkout-card {
     padding: 1.5rem;
   }
-  
+
   .order-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
   }
-  
+
   .item-price {
     align-self: flex-end;
   }
 }
 </style>
+
+<div class="mt-4">
+            <h5 class="mb-3">💳 Mode de paiement</h5>
+            <form method="post" action="{% url 'place_order' %}">
+                {% csrf_token %}
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="mode_paiement" id="livraison" value="livraison"
+                        checked>
+                    <label class="form-check-label" for="livraison">
+                        💵 Paiement à la livraison
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="mode_paiement" id="orange_money"
+                        value="orange_money">
+                    <label class="form-check-label" for="orange_money">
+                        🟠 Orange Money
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="mode_paiement" id="mtn_money" value="mtn_money">
+                    <label class="form-check-label" for="mtn_money">
+                        🟡 MTN Mobile Money
+                    </label>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="radio" name="mode_paiement" id="carte_bancaire"
+                        value="carte_bancaire">
+                    <label class="form-check-label" for="carte_bancaire">
+                        💳 Carte bancaire
+                    </label>
+                </div>
+
+                <!-- Section cartes sauvegardées -->
+                {% if user_cards %}
+                <div id="saved-cards-section" class="mt-3" style="display: none;">
+                    <h6 class="text-primary mb-3">Sélectionnez une carte sauvegardée :</h6>
+                    <div class="row">
+                        {% for card in user_cards %}
+                        <div class="col-md-6 mb-2">
+                            <div class="card border {% if card.is_default %}border-primary{% endif %}">
+                                <div class="card-body p-2">
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input" type="radio" name="selected_card"
+                                               id="card_{{ card.id }}" value="{{ card.id }}"
+                                               {% if card.is_default %}checked{% endif %}>
+                                        <label class="form-check-label w-100" for="card_{{ card.id }}">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    {% if card.card_type == 'visa' %}
+                                                        <i class="bi bi-credit-card text-primary"></i>
+                                                    {% elif card.card_type == 'mastercard' %}
+                                                        <i class="bi bi-credit-card text-warning"></i>
+                                                    {% else %}
+                                                        <i class="bi bi-credit-card"></i>
+                                                    {% endif %}
+                                                    <strong>{{ card.masked_number }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ card.cardholder_name }}</small>
+                                                </div>
+                                                {% if card.is_default %}
+                                                    <span class="badge bg-primary">Défaut</span>
+                                                {% endif %}
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-2">
+                        <a href="{% url 'ajouter_carte' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-plus-circle"></i> Ajouter une nouvelle carte
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="text-end">
+                    <button type="submit" class="btn btn-lg btn-success">✅ Confirmer la commande</button>
+                </div>
+            </form>
+        </div>
+        {% else %}
+        <p class="text-muted text-center mt-4">Votre panier est vide.</p>
+        {% endif %}
 
 <div class="checkout-container">
   <div class="success-header">

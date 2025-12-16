@@ -156,3 +156,29 @@ class Order(models.Model):
 
     def __str__(self):
         return f"{self.numero_commande} - {self.user.username}"
+
+
+class Wishlist(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Wishlist de {self.user.username}"
+
+    class Meta:
+        verbose_name = "Wishlist"
+        verbose_name_plural = "Wishlists"
+
+
+class WishlistItem(models.Model):
+    wishlist = models.ForeignKey(Wishlist, related_name='items', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.product.title} dans wishlist de {self.wishlist.user.username}"
+
+    class Meta:
+        unique_together = ('wishlist', 'product')
+        verbose_name = "Article de wishlist"
+        verbose_name_plural = "Articles de wishlist"
