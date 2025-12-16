@@ -622,6 +622,16 @@ def order_history(request):
     
     return render(request, 'html/order_history.html', {'user_orders': user_orders})
 
+@login_required
+def mes_cartes(request):
+    """Vue pour afficher les cartes bancaires de l'utilisateur"""
+    # Pour l'instant, on affiche une page simple
+    # TODO: Implémenter la gestion complète des cartes bancaires
+    return render(request, 'html/mes_cartes.html', {
+        'title': 'Mes Cartes Bancaires',
+        'message': 'Fonctionnalité en cours de développement.'
+    })
+
 # Vue pour les vrais paiements (même en développement)
 @login_required
 def real_payment(request):

@@ -277,6 +277,7 @@
 }
 </style>
 
+{% if cart_items %}
 <div class="mt-4">
             <h5 class="mb-3">💳 Mode de paiement</h5>
             <form method="post" action="{% url 'place_order' %}">
@@ -359,8 +360,6 @@
                 </div>
             </form>
         </div>
-        {% else %}
-        <p class="text-muted text-center mt-4">Votre panier est vide.</p>
         {% endif %}
 
 <div class="checkout-container">
