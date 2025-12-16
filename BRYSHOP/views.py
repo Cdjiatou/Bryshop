@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render, redirect, HttpResponse
-from .models import CartItem, Product, Commande, Category, Cart, Order, Payment, UserCard
+from .models import CartItem, Product, Commande, Category, Cart, Order, Payment
 from django.core.paginator import Paginator
 from django.core.mail import send_mail
 from django.contrib import messages
@@ -198,7 +198,7 @@ def checkout(request):
         cart = Cart.objects.get(user=request.user)
         cart_items = cart.items.all()
         total_price = sum(item.product.price * item.quantity for item in cart_items)
-
+        
         # Calculer frais de livraison
         pays = request.user.customuser.pays if hasattr(request.user, 'customuser') else ''
         frais_par_pays = {
@@ -216,15 +216,11 @@ def checkout(request):
         frais_livraison = 0
         total_avec_livraison = 0
 
-    # Récupérer les cartes bancaires sauvegardées de l'utilisateur
-    user_cards = UserCard.objects.filter(user=request.user).order_by('-is_default', '-created_at')
-
     return render(request, 'html/checkout.html', {
         'cart_items': cart_items,
         'total_price': total_price,
         'frais_livraison': frais_livraison,
-        'total_avec_livraison': total_avec_livraison,
-        'user_cards': user_cards
+        'total_avec_livraison': total_avec_livraison
     })
     
 
@@ -262,17 +258,7 @@ def place_order(request):
         
         total_a_payer = total_price + frais_livraison
 
-        # 3. Gestion de la carte sélectionnée pour les paiements par carte
-        selected_card_id = request.POST.get('selected_card')
-        selected_card = None
-        if selected_card_id and mode_paiement == 'carte_bancaire':
-            try:
-                selected_card = UserCard.objects.get(id=selected_card_id, user=user)
-            except UserCard.DoesNotExist:
-                messages.error(request, "Carte sélectionnée introuvable.")
-                return redirect('checkout')
-
-        # 4. Branchement selon le mode de paiement
+        # 3. Branchement selon le mode de paiement
         if mode_paiement == 'livraison':
             # --- CAS PAIEMENT À LA LIVRAISON (Logique Collaborateur) ---
             frais_livraison_total = 0 # Variable pour l'email
@@ -336,8 +322,7 @@ def place_order(request):
                     amount=total_a_payer,
                     status='pending',
                     raw_response=response,
-                    payment_method=mode_paiement, # On garde trace que c'était Orange/MTN/Carte
-                    user_card=selected_card # Carte bancaire sélectionnée si applicable
+                    payment_method=mode_paiement # On garde trace que c'était Orange/MTN/Carte
                 )
                 return redirect(response.get('authorization_url'))
             else:
@@ -416,13 +401,7 @@ def mes_commandes(request):
 def test_payment(request):
     """Vue de test pour les paiements - accessible seulement en développement"""
     from django.conf import settings
-    from django.contrib.messages import get_messages
     import uuid
-
-    # Nettoyer les messages existants pour éviter les duplications
-    # Consommer tous les messages existants lors d'une requête GET normale
-    if request.method == 'GET':
-        list(get_messages(request))
 
     context = {
         'payment_methods': [
@@ -475,8 +454,6 @@ def test_payment(request):
                 print(f"[TEST PAYMENT] Payment créé en base: ID {payment.id}")
 
                 # Succès - redirection vers Notch Pay
-                # Stocker l'ID du paiement en session pour éviter les messages dupliqués
-                request.session['last_test_payment_id'] = payment.id
                 messages.success(request, f"Paiement initialisé avec succès ! ID: {payment.id}")
                 return redirect(response.get('authorization_url'))
 
@@ -506,114 +483,3 @@ def test_payment(request):
         })
 
     return render(request, 'html/test_payment.html', context)
-
-
-@login_required
-def mes_cartes(request):
-    """Vue pour afficher et gérer les cartes bancaires de l'utilisateur"""
-    cartes = UserCard.objects.filter(user=request.user)
-    return render(request, 'html/mes_cartes.html', {'cartes': cartes})
-
-
-@login_required
-def ajouter_carte(request):
-    """Vue pour ajouter une nouvelle carte bancaire"""
-    if request.method == 'POST':
-        # Récupération des données du formulaire
-        card_number = request.POST.get('card_number', '').replace(' ', '')
-        expiry_date = request.POST.get('expiry_date', '')  # Format MM/YY
-        cardholder_name = request.POST.get('cardholder_name', '').strip()
-        card_type = request.POST.get('card_type', 'other')
-        is_default = request.POST.get('is_default') == 'on'
-
-        try:
-            # Validation des données
-            if not card_number or len(card_number) < 13 or len(card_number) > 19:
-                messages.error(request, "Numéro de carte invalide.")
-                return redirect('ajouter_carte')
-
-            if not expiry_date or len(expiry_date) != 5 or expiry_date[2] != '/':
-                messages.error(request, "Date d'expiration invalide (format MM/YY requis).")
-                return redirect('ajouter_carte')
-
-            try:
-                expiry_month = int(expiry_date[:2])
-                expiry_year = 2000 + int(expiry_date[3:])
-            except ValueError:
-                messages.error(request, "Date d'expiration invalide.")
-                return redirect('ajouter_carte')
-
-            if not cardholder_name:
-                messages.error(request, "Nom du titulaire requis.")
-                return redirect('ajouter_carte')
-
-            # Déterminer le type de carte automatiquement si possible
-            if card_number.startswith('4'):
-                card_type = 'visa'
-            elif card_number.startswith(('51', '52', '53', '54', '55')):
-                card_type = 'mastercard'
-            elif card_number.startswith(('34', '37')):
-                card_type = 'amex'
-
-            # Générer un token simulé (en production, cela viendrait de Notch Pay ou autre PSP)
-            # Pour l'instant, on utilise un hash du numéro + timestamp
-            import hashlib
-            import time
-            card_token = hashlib.sha256(f"{card_number}{time.time()}".encode()).hexdigest()[:50]
-
-            # Créer la carte
-            UserCard.objects.create(
-                user=request.user,
-                card_token=card_token,
-                last_four_digits=card_number[-4:],
-                card_type=card_type,
-                expiry_month=expiry_month,
-                expiry_year=expiry_year,
-                cardholder_name=cardholder_name,
-                is_default=is_default
-            )
-
-            messages.success(request, "Carte bancaire ajoutée avec succès !")
-            return redirect('mes_cartes')
-
-        except Exception as e:
-            messages.error(request, f"Erreur lors de l'ajout de la carte : {e}")
-            return redirect('ajouter_carte')
-
-    return render(request, 'html/ajouter_carte.html')
-
-
-@login_required
-def supprimer_carte(request, card_id):
-    """Vue pour supprimer une carte bancaire"""
-    try:
-        carte = UserCard.objects.get(id=card_id, user=request.user)
-        carte.delete()
-        messages.success(request, "Carte supprimée avec succès.")
-    except UserCard.DoesNotExist:
-        messages.error(request, "Carte non trouvée.")
-    except Exception as e:
-        messages.error(request, f"Erreur lors de la suppression : {e}")
-
-    return redirect('mes_cartes')
-
-
-@login_required
-def definir_carte_defaut(request, card_id):
-    """Vue pour définir une carte comme défaut"""
-    try:
-        # D'abord, retirer le statut par défaut de toutes les cartes de l'utilisateur
-        UserCard.objects.filter(user=request.user).update(is_default=False)
-
-        # Puis définir la carte sélectionnée comme défaut
-        carte = UserCard.objects.get(id=card_id, user=request.user)
-        carte.is_default = True
-        carte.save()
-
-        messages.success(request, f"Carte {carte} définie comme carte par défaut.")
-    except UserCard.DoesNotExist:
-        messages.error(request, "Carte non trouvée.")
-    except Exception as e:
-        messages.error(request, f"Erreur : {e}")
-
-    return redirect('mes_cartes')
