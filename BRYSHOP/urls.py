@@ -18,6 +18,7 @@ urlpatterns = [
     path('mes-commandes/', views.mes_commandes, name='mes_commandes'),
 
 
+
     # Dashboard administrateur (boutiquier)
     path('dashboard/', dashboard_boutiquier, name='dashboard_boutiquier'),
 
@@ -28,10 +29,6 @@ urlpatterns = [
     # Modification profil et mot de passe
     path('dashboard/modifier-profil/', modifier_profil, name='modifier_profil'),
     path('dashboard/changer-mot-de-passe/', changer_mot_de_passe, name='changer_mot_de_passe'),
-
-
-
-
 
 ]
 

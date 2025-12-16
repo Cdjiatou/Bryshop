@@ -111,7 +111,6 @@ def dashboard_boutiquier(request):
         'notifications': notifications,
     })
 from django.shortcuts import get_object_or_404, render, redirect
-from .models import CartItem, Product, Commande, Category, Cart, Order
 from django.core.paginator import Paginator
 from django.core.mail import send_mail
 from django.contrib import messages
@@ -119,6 +118,11 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.contrib.auth.views import redirect_to_login
 from django.urls import reverse
+from .models import CartItem, Product, Commande, Category, Cart, Order, Wishlist, WishlistItem 
+
+
+
+
 
 
 # Create your views here.
@@ -331,10 +335,7 @@ def checkout(request):
     })
     
 
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
-from .models import Cart, Order
+
 
 @login_required
 def place_order(request):
@@ -420,4 +421,76 @@ def place_order(request):
 def mes_commandes(request):
     commandes = Order.objects.filter(user=request.user).order_by('-date_ordered')
     return render(request, 'html/mes_commandes.html', {'commandes': commandes})
+
+
+
+# historique des commandes (clients)
+@login_required
+def order_history(request):
+    # Récupère toutes les commandes passées par l'utilisateur connecté
+    user_orders = Order.objects.filter(user=request.user).order_by('-date_ordered')
+    
+    # Vous pouvez regrouper les articles par date ou par un champ 'numéro_commande' si vous en ajoutez un.
+    
+    return render(request, 'html/order_history.html', {'user_orders': user_orders})
+
+
+
+
+
+
+
+
+
+# -------------------------------------------
+# Vues pour la Wishlist
+# -------------------------------------------
+
+@login_required(login_url='login')
+def add_to_wishlist(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    user = request.user
+
+    # 1. Récupérer ou créer la Wishlist pour l'utilisateur
+    wishlist, created = Wishlist.objects.get_or_create(user=user)
+
+    # 2. Vérifier si l'article existe déjà
+    try:
+        WishlistItem.objects.create(wishlist=wishlist, product=product)
+        messages.success(request, f"✨ {product.title} a été ajouté à votre liste de souhaits.")
+    except Exception:
+        # Gère le cas où l'article existe déjà (dû à unique_together)
+        messages.info(request, f"ℹ️ {product.title} est déjà dans votre liste de souhaits.")
+        
+    # Redirige vers la page d'où l'utilisateur vient, ou vers la wishlist
+    return redirect(request.META.get('HTTP_REFERER', 'wishlist_view'))
+
+
+@login_required
+def wishlist_view(request):
+    try:
+        wishlist = Wishlist.objects.get(user=request.user)
+        wishlist_items = wishlist.items.all()
+    except Wishlist.DoesNotExist:
+        wishlist_items = []
+
+    return render(request, 'html/wishlist.html', {'wishlist_items': wishlist_items})
+
+
+@login_required
+def remove_from_wishlist(request, item_id):
+    # Cherche l'élément dans la wishlist de l'utilisateur connecté
+    item = get_object_or_404(
+        WishlistItem, 
+        id=item_id, 
+        wishlist__user=request.user # Sécurité: s'assure que l'élément appartient bien à l'utilisateur
+    )
+    
+    product_title = item.product.title
+    item.delete()
+    
+    messages.success(request, f"🗑️ {product_title} a été retiré de votre liste de souhaits.")
+    return redirect('wishlist_view')
+
+
 
