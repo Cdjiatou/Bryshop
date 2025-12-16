@@ -73,3 +73,34 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Commande de {self.user} - {self.product.title}"
+    
+
+
+
+
+
+
+# Nouveau Modèle : Liste de Souhaits
+class Wishlist(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Wishlist de {self.user.username}"
+
+# Nouveau Modèle : Article dans la Liste de Souhaits
+class WishlistItem(models.Model):
+    wishlist = models.ForeignKey(Wishlist, related_name='items', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # Assure qu'un produit n'est pas ajouté deux fois dans la wishlist du même utilisateur
+        unique_together = ('wishlist', 'product')
+
+    def __str__(self):
+        return f"{self.product.title} dans la liste de {self.wishlist.user.username}"
+
+
+
+    
