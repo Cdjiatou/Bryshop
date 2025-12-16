@@ -254,19 +254,10 @@ footer p {
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto align-items-center">
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'Accueil' %}">
-              <i class="bi bi-house-door"></i> Accueil
-            </a>
+            <a class="nav-link" href="{% url 'Accueil' %}"><i class="bi bi-house-door"></i> Accueil</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'nos_produits' %}">
-              <i class="bi bi-grid"></i> Nos Produits
-            </a>
-          </li>
-          <li class="nav-item">
-            <button id="panier" type="button" class="btn" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-html="true" data-bs-content="">
-              <i class="bi bi-cart3"></i> Panier (0)
-            </button>
+            <a class="nav-link" href="{% url 'nos_produits' %}"><i class="bi bi-grid"></i> Nos Produits</a>
           </li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-bs-toggle="dropdown">
@@ -275,36 +266,40 @@ footer p {
             <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
               {% for cat in categories %}
               <li>
-                <a class="dropdown-item" href="{% url 'product_by_category' cat.id %}">
-                  <i class="bi bi-tag"></i> {{ cat.name }}
-                </a>
+                <a class="dropdown-item" href="{% url 'product_by_category' cat.id %}"><i class="bi bi-tag"></i> {{ cat.name }}</a>
               </li>
               {% endfor %}
             </ul>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'contact' %}">
-              <i class="bi bi-envelope"></i> Contact
-            </a>
-          </li>
-          
           {% if user.is_authenticated %}
-          <li class="nav-item">
-            <a class="nav-link text-danger" href="{% url 'logout' %}">
-              <i class="bi bi-box-arrow-right"></i> Déconnexion
-            </a>
-          </li>
+            {% if user.role == 'boutiquier' or user.is_superuser %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'dashboard_boutiquier' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i> Déconnexion</a>
+              </li>
+            {% else %}
+              <li class="nav-item">
+                <button id="panier" type="button" class="btn" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-html="true" data-bs-content="">
+                  <i class="bi bi-cart3"></i> Panier (0)
+                </button>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'contact' %}"><i class="bi bi-envelope"></i> Contact</a>
+              </li>
+              
+              <li class="nav-item">
+                <a class="nav-link text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i> Déconnexion</a>
+              </li>
+            {% endif %}
           {% else %}
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'login' %}">
-              <i class="bi bi-box-arrow-in-right"></i> Connexion
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'register' %}">
-              <i class="bi bi-person-plus"></i> Inscription
-            </a>
-          </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right"></i> Connexion</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'register' %}"><i class="bi bi-person-plus"></i> Inscription</a>
+            </li>
           {% endif %}
         </ul>
       </div>

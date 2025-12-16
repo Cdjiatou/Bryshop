@@ -1,0 +1,112 @@
+{% extends 'html/index.html' %}
+{% load static %}
+
+{% block content %}
+
+
+<div class="container mt-4">
+    <h2 class="mb-4">Dashboard Administrateur</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-body text-center">
+                    <img src="https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}" class="rounded-circle mb-2" width="100" height="100" alt="Avatar">
+                    <h5 class="card-title">{{ user.get_full_name }}</h5>
+                    <p class="card-text">{{ user.email }}</p>
+                    <!-- <a href="/accounts/logout/" class="btn btn-danger btn-sm">Déconnexion</a> -->
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header">Mon compte</div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{% url 'modifier_profil' %}" class="btn btn-outline-primary btn-sm w-100 mb-2">Modifier mes informations</a>
+                        <a href="{% url 'changer_mot_de_passe' %}" class="btn btn-outline-warning btn-sm w-100">Changer mon mot de passe</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="row mb-3">
+                <div class="col">
+                    <div class="card text-white bg-primary mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Commandes</h5>
+                            <p class="card-text display-6">{{ total_commandes }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card text-white bg-success mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Produits</h5>
+                            <p class="card-text display-6">{{ total_produits }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card text-white bg-info mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Clients</h5>
+                            <p class="card-text display-6">{{ total_clients }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header">Historique des commandes</div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Client</th>
+                                <th>Produit</th>
+                                <th>Quantité</th>
+                                <th>Statut</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for commande in commandes %}
+                            <tr>
+                                <td>{{ commande.numero_commande }}</td>
+                                <td>{{ commande.user.get_full_name }}</td>
+                                <td>{{ commande.product.title }}</td>
+                                <td>{{ commande.quantity }}</td>
+                                <td>{{ commande.get_statut_display }}</td>
+                                <td>{{ commande.date_ordered|date:'d/m/Y H:i' }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6">Aucune commande</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header">Gestion des categories</div>
+                <ul class="list-group list-group-flush">
+                    {% for cat in categories %}
+                    <li class="list-group-item">{{ cat.name }}</li>
+                    {% empty %}
+                    <li class="list-group-item">Aucune categorie</li>
+                    {% endfor %}
+                </ul>
+                <a href="{% url 'ajouter_categorie' %}" class="btn btn-outline-primary btn-sm m-2">Ajouter une catégorie</a>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header">Gestion des produits</div>
+                <ul class="list-group list-group-flush">
+                    {% for prod in produits %}
+                    <li class="list-group-item">{{ prod.title }} (Stock: {{ prod.stock }})</li>
+                    {% empty %}
+                    <li class="list-group-item">Aucun produit</li>
+                    {% endfor %}
+                </ul>
+                <a href="{% url 'ajouter_produit' %}" class="btn btn-outline-success btn-sm m-2">Ajouter un produit</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
