@@ -61,3 +61,4 @@ print(f"\n{created_count} nouveau(x) produit(s) cree(s) SANS images")
 print(f"Total produits dans la base: {Product.objects.count()}")
 print("\nCes produits n'ont PAS d'images, donc ils afficheront l'image placeholder.")
 print("Verifiez que les placeholders s'affichent correctement sur la page d'accueil!")
+

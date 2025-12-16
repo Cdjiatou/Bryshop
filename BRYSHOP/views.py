@@ -13,6 +13,18 @@ from datetime import datetime
 from .utils import initialize_notch_payment, verify_notch_transaction
 from .models import CartItem, Product, Commande, Category, Cart, Order, Payment, Wishlist, WishlistItem
 from .forms_profil import ProfilBoutiquierForm, PasswordChangeCustomForm
+
+# Import des vues de test de paiement
+from .test_payment_views import (
+    payment_test_suite,
+    test_successful_payment,
+    test_failed_payment,
+    test_cancelled_payment,
+    test_paypal_payment,
+    test_large_amount_payment,
+    simulate_payment_callback,
+    run_payment_tests
+)
 from django.contrib.auth import update_session_auth_hash,get_user_model
 from .forms import CategoryForm, ProductForm
 

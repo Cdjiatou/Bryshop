@@ -1,0 +1,240 @@
+{% extends 'html/menu.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h2 class="text-primary mb-3">
+                    <i class="bi bi-credit-card me-2"></i>
+                    {{ scenario_name }}
+                </h2>
+                <p class="text-muted">
+                    Scénario de test: <strong>{{ expected_result|title }}</strong>
+                </p>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Mode Test:</strong> Ce paiement est simulé - aucune transaction réelle ne sera effectuée.
+                </div>
+            </div>
+
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert">
+                        <i class="bi bi-info-circle me-2"></i>{{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Payment Form -->
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil-square me-2"></i>
+                        Formulaire de Test de Paiement
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="">
+                        {% csrf_token %}
+
+                        <!-- Customer Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3">
+                                    <i class="bi bi-person-fill me-2"></i>
+                                    Informations Client
+                                </h6>
+                            </div>
+                            <div class="col-md-12">
+                                <label for="email" class="form-label">
+                                    <i class="bi bi-envelope me-1"></i>Email *
+                                </label>
+                                <input type="email"
+                                       class="form-control form-control-lg"
+                                       id="email"
+                                       name="email"
+                                       value="{{ default_values.email }}"
+                                       required
+                                       placeholder="client@example.com">
+                                <div class="form-text">Adresse email pour les notifications de paiement</div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Details -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3">
+                                    <i class="bi bi-cash-stack me-2"></i>
+                                    Détails du Paiement
+                                </h6>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="amount" class="form-label">
+                                    <i class="bi bi-currency-exchange me-1"></i>Montant *
+                                </label>
+                                <div class="input-group">
+                                    <input type="number"
+                                           class="form-control form-control-lg"
+                                           id="amount"
+                                           name="amount"
+                                           value="{{ default_values.amount }}"
+                                           min="100"
+                                           required>
+                                    <span class="input-group-text">{{ default_values.currency }}</span>
+                                </div>
+                                <div class="form-text">Montant minimum: 100 {{ default_values.currency }}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="currency" class="form-label">
+                                    <i class="bi bi-flag me-1"></i>Devise
+                                </label>
+                                <select class="form-select form-select-lg" id="currency" name="currency">
+                                    {% for currency in currencies %}
+                                        <option value="{{ currency }}"
+                                                {% if currency == default_values.currency %}selected{% endif %}>
+                                            {{ currency }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="payment_method" class="form-label">
+                                    <i class="bi bi-credit-card me-1"></i>Méthode de Paiement
+                                </label>
+                                <select class="form-select form-select-lg" id="payment_method" name="payment_method">
+                                    {% for method_code, method_name in payment_methods %}
+                                        <option value="{{ method_code }}"
+                                                {% if method_code == default_values.payment_method %}selected{% endif %}>
+                                            {{ method_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label for="description" class="form-label">
+                                <i class="bi bi-chat-text me-1"></i>Description
+                            </label>
+                            <textarea class="form-control"
+                                      id="description"
+                                      name="description"
+                                      rows="3"
+                                      placeholder="Description du paiement...">{{ default_values.description }}</textarea>
+                            <div class="form-text">Description optionnelle du paiement</div>
+                        </div>
+
+                        <!-- Test Information -->
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-info-circle me-2"></i>Informations du Test</h6>
+                            <ul class="mb-0">
+                                <li><strong>Scénario:</strong> {{ scenario_name }}</li>
+                                <li><strong>Résultat attendu:</strong> {{ expected_result|title }}</li>
+                                <li><strong>Mode:</strong> Simulation (pas de paiement réel)</li>
+                            </ul>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'payment_test_suite' %}" class="btn btn-outline-secondary me-md-2">
+                                <i class="bi bi-arrow-left me-1"></i>
+                                Retour aux Tests
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-play-fill me-2"></i>
+                                Lancer le Test de Paiement
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Test Scenarios Info -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        À propos des Scénarios de Test
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-success">Paiement Réussi</h6>
+                            <p class="small">Simule un paiement qui se déroule normalement sans erreur.</p>
+
+                            <h6 class="text-danger">Paiement Échoué</h6>
+                            <p class="small">Simule un refus du paiement par le fournisseur ou une erreur technique.</p>
+
+                            <h6 class="text-warning">Paiement Annulé</h6>
+                            <p class="small">Simule une annulation par l'utilisateur ou une expiration.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-info">PayPal</h6>
+                            <p class="small">Test spécifique de l'intégration PayPal via Notch Pay.</p>
+
+                            <h6 class="text-primary">Gros Montant</h6>
+                            <p class="small">Test avec un montant élevé pour vérifier les limites du système.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-update currency based on payment method for PayPal
+document.getElementById('payment_method').addEventListener('change', function() {
+    const paymentMethod = this.value;
+    const currencySelect = document.getElementById('currency');
+
+    if (paymentMethod === 'paypal') {
+        // PayPal typically uses USD
+        currencySelect.value = 'USD';
+    } else {
+        // African payment methods use XAF
+        currencySelect.value = 'XAF';
+    }
+});
+
+// Format amount with thousand separators
+document.getElementById('amount').addEventListener('input', function() {
+    let value = this.value.replace(/,/g, '');
+    if (value && !isNaN(value)) {
+        this.value = parseInt(value).toLocaleString();
+    }
+});
+</script>
+
+<style>
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+.alert-info ul {
+    padding-left: 1.2rem;
+}
+
+@media (max-width: 768px) {
+    .d-md-flex {
+        flex-direction: column;
+    }
+
+    .me-md-2 {
+        margin-right: 0 !important;
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+{% endblock %}

@@ -42,3 +42,4 @@ else:
 
 print("\nEtat final:")
 print(f"Produits restants: {Product.objects.count()}")
+

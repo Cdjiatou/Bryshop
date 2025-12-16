@@ -33,5 +33,15 @@ urlpatterns = [
     path('dashboard/modifier-profil/', modifier_profil, name='modifier_profil'),
     path('dashboard/changer-mot-de-passe/', changer_mot_de_passe, name='changer_mot_de_passe'),
 
+    # URLs de test de paiement avancées
+    path('payment-tests/', views.payment_test_suite, name='payment_test_suite'),
+    path('test-successful-payment/', views.test_successful_payment, name='test_successful_payment'),
+    path('test-failed-payment/', views.test_failed_payment, name='test_failed_payment'),
+    path('test-cancelled-payment/', views.test_cancelled_payment, name='test_cancelled_payment'),
+    path('test-paypal-payment/', views.test_paypal_payment, name='test_paypal_payment'),
+    path('test-large-amount/', views.test_large_amount_payment, name='test_large_amount_payment'),
+    path('payment/simulate/<str:reference>/', views.simulate_payment_callback, name='simulate_payment_callback'),
+    path('run-payment-tests/', views.run_payment_tests, name='run_payment_tests'),
+
 ]
 
