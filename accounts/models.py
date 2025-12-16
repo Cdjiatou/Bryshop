@@ -14,7 +14,7 @@ CLIENT_SEXE_CHOICES = [('Homme', 'Homme'), ('Femme', 'Femme')]
 
 # Modèle Utilisateur Personnalisé
 class CustomUser(AbstractUser):
-<<<<<<< HEAD
+
     sexe_choices = [('M', 'Masculin'), ('F', 'Féminin')]
     role_choices = [
         ('client', 'Client'),
@@ -26,19 +26,7 @@ class CustomUser(AbstractUser):
     pays = models.CharField(max_length=100)
     sexe = models.CharField(max_length=1, choices=sexe_choices)
     role = models.CharField(max_length=20, choices=role_choices, default='client')
-=======
-   
-    telephone = models.CharField(max_length=20, blank=True, null=True)
-    ville = models.CharField(max_length=100, blank=True, null=True)
-    pays = models.CharField(max_length=100, blank=True, null=True)
-    # Utilisation correcte de la variable définie
-    sexe = models.CharField(max_length=1, choices=USER_SEXE_CHOICES, blank=True, null=True)
 
-    # Note : Le champ is_staff de Django est hérité de AbstractUser
-    
-    def __str__(self):
-        return self.username
->>>>>>> aa2d42933048647c932f91eaddfba79a6349a236
 
 
 # Modèle Client (Profil étendu)
