@@ -134,9 +134,25 @@ class Order(models.Model):
         if not self.numero_commande:
             import uuid
             from datetime import datetime
-            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-            unique_id = str(uuid.uuid4().hex[:6]).upper()
-            self.numero_commande = f"CMD-{timestamp}-{unique_id}"
+            import time
+            max_attempts = 10
+            for attempt in range(max_attempts):
+                try:
+                    # Add small delay and random component to reduce collision probability
+                    time.sleep(0.001 * attempt)  # Small delay that increases with attempts
+                    timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')  # Include microseconds
+                    unique_id = str(uuid.uuid4().hex[:10]).upper()  # Use 10 chars for more uniqueness
+                    numero_commande = f"CMD-{timestamp}-{unique_id}"
+
+                    # Check if this numero_commande already exists (only for existing records)
+                    if not Order.objects.filter(numero_commande=numero_commande).exists():
+                        self.numero_commande = numero_commande
+                        break
+                except Exception:
+                    if attempt == max_attempts - 1:
+                        raise
+                    continue
+
         super().save(*args, **kwargs)
 
     def calculer_frais_livraison(self):

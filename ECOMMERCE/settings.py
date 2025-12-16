@@ -175,6 +175,7 @@ MESSAGE_TAGS = {
 NOTCH_PAY_PUBLIC_KEY = 'pk_test.xQprqgaLJHJAJZ8XBPE9mn9bJJWbb3ExKvlaJupHI8p76LjHkO6fuDNKcKDYuEekWVCSEAfq18JPU11tolJ8oEtHSYWIMqGRk4FDc0nqLwpOBxc844FtPY0IrZmNq'
 NOTCH_PAY_URL = 'https://api.notchpay.co/payments/initialize'
 NOTCH_PAY_VERIFY_URL = 'https://api.notchpay.co/payments/'
+  # À remplacer par votre domaine réel
 
 # Configuration Jazzmin pour BryShop
 JAZZMIN_SETTINGS = {
