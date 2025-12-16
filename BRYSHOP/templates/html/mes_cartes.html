@@ -1,123 +1,90 @@
 {% extends 'html/menu.html' %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-primary">💳 Mes Cartes Bancaires</h2>
-        <a href="{% url 'ajouter_carte' %}" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Ajouter une carte
-        </a>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h2 class="text-primary mb-3">
+                    <i class="bi bi-credit-card-fill me-2"></i>
+                    {{ title }}
+                </h2>
+                <p class="text-muted">
+                    Gérez vos cartes bancaires pour faciliter vos achats
+                </p>
+            </div>
+
+            <!-- Message d'information -->
+            <div class="alert alert-info">
+                <h5><i class="bi bi-info-circle me-2"></i>Fonctionnalité en développement</h5>
+                <p class="mb-2">{{ message }}</p>
+                <p class="mb-0 small">
+                    Cette fonctionnalité sera bientôt disponible pour vous permettre de :
+                </p>
+                <ul class="mb-0 small">
+                    <li>Sauvegarder vos cartes bancaires en toute sécurité</li>
+                    <li>Effectuer des paiements plus rapidement</li>
+                    <li>Gérer plusieurs cartes de paiement</li>
+                    <li>Recevoir des notifications de sécurité</li>
+                </ul>
+            </div>
+
+            <!-- Bouton pour ajouter une carte (désactivé pour l'instant) -->
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Ajouter une Nouvelle Carte</h5>
+                    <p class="card-text">Bientôt disponible - Enregistrez vos cartes pour des paiements plus rapides.</p>
+                    <button class="btn btn-primary" disabled>
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Ajouter une Carte
+                    </button>
+                </div>
+            </div>
+
+            <!-- Actions disponibles -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h5>Actions Disponibles</h5>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{% url 'mes_commandes' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-receipt me-1"></i>
+                            Mes Commandes
+                        </a>
+                        <a href="/" class="btn btn-outline-success">
+                            <i class="bi bi-house me-1"></i>
+                            Continuer mes achats
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
-
-    {% if cartes %}
-        <div class="row">
-            {% for carte in cartes %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100 {% if carte.is_default %}border-primary shadow-lg{% else %}shadow{% endif %}">
-                    <div class="card-header {% if carte.is_default %}bg-primary text-white{% else %}bg-light{% endif %}">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                {% if carte.card_type == 'visa' %}
-                                    <i class="bi bi-credit-card text-primary"></i> Visa
-                                {% elif carte.card_type == 'mastercard' %}
-                                    <i class="bi bi-credit-card text-warning"></i> MasterCard
-                                {% elif carte.card_type == 'amex' %}
-                                    <i class="bi bi-credit-card text-success"></i> American Express
-                                {% else %}
-                                    <i class="bi bi-credit-card"></i> {{ carte.get_card_type_display }}
-                                {% endif %}
-                            </div>
-                            {% if carte.is_default %}
-                                <span class="badge bg-success">Par défaut</span>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="card-body">
-                        <h5 class="card-title">{{ carte.masked_number }}</h5>
-                        <p class="card-text text-muted mb-2">{{ carte.cardholder_name }}</p>
-                        <p class="card-text">
-                            <small class="text-muted">
-                                Expire le {{ carte.expiry_date_display }}
-                                {% if carte.is_expired %}
-                                    <span class="badge bg-danger ms-2">Expirée</span>
-                                {% endif %}
-                            </small>
-                        </p>
-                    </div>
-
-                    <div class="card-footer bg-transparent">
-                        <div class="d-flex justify-content-between">
-                            {% if not carte.is_default %}
-                                <form method="post" action="{% url 'definir_carte_defaut' carte.id %}" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-star"></i> Définir par défaut
-                                    </button>
-                                </form>
-                            {% else %}
-                                <span class="text-primary"><i class="bi bi-star-fill"></i> Carte par défaut</span>
-                            {% endif %}
-
-                            <button type="button" class="btn btn-outline-danger btn-sm"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal{{ carte.id }}">
-                                <i class="bi bi-trash"></i> Supprimer
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal de confirmation de suppression -->
-                <div class="modal fade" id="deleteModal{{ carte.id }}" tabindex="-1">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Confirmer la suppression</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <p>Êtes-vous sûr de vouloir supprimer cette carte ?</p>
-                                <p class="text-muted">{{ carte.masked_number }} - {{ carte.cardholder_name }}</p>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                <form method="post" action="{% url 'supprimer_carte' carte.id %}" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger">Supprimer</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-
-        <div class="mt-4 text-center">
-            <a href="{% url 'checkout' %}" class="btn btn-primary">
-                <i class="bi bi-cart-check"></i> Aller au paiement
-            </a>
-        </div>
-
-    {% else %}
-        <div class="alert alert-info text-center mt-5">
-            <h5>Vous n'avez pas encore enregistré de carte bancaire.</h5>
-            <p class="mb-3">Ajoutez votre première carte pour faciliter vos futurs achats.</p>
-            <a href="{% url 'ajouter_carte' %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Ajouter ma première carte
-            </a>
-        </div>
-    {% endif %}
 </div>
-{% endblock %}
 
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.alert-info {
+    border-left: 4px solid #0dcaf0;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .d-md-flex {
+        flex-direction: column;
+    }
+
+    .btn {
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+{% endblock %}

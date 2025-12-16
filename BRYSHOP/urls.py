@@ -1,5 +1,5 @@
 from django.urls import path, include
-from BRYSHOP.views import index, detail, checkout, confirmation, product_by_category, nos_produits,contact_views, dashboard_boutiquier, ajouter_categorie, ajouter_produit, modifier_profil, changer_mot_de_passe
+from BRYSHOP.views import index, detail, checkout, confirmation, product_by_category, nos_produits,contact_views, dashboard_boutiquier, ajouter_categorie, ajouter_produit, modifier_profil, changer_mot_de_passe, mes_cartes
 from . import views
 urlpatterns = [
     path('', index, name='Accueil'),
@@ -18,6 +18,7 @@ urlpatterns = [
     path('payment/callback/', views.payment_callback, name='payment_callback'),
 
     path('mes-commandes/', views.mes_commandes, name='mes_commandes'),
+    path('mes-cartes/', mes_cartes, name='mes_cartes'),
     path('test-payment/', views.test_payment, name='test_payment'),
 
 

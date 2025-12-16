@@ -525,6 +525,15 @@ def mes_commandes(request):
     commandes = Order.objects.filter(user=request.user).order_by('-date_ordered')
     return render(request, 'html/mes_commandes.html', {'commandes': commandes})
 
+@login_required
+def mes_cartes(request):
+    """Vue pour afficher les cartes bancaires de l'utilisateur"""
+    # Pour l'instant, on affiche une page simple
+    # TODO: Implémenter la gestion complète des cartes bancaires
+    return render(request, 'html/mes_cartes.html', {
+        'title': 'Mes Cartes Bancaires',
+        'message': 'Fonctionnalité en cours de développement.'
+    })
 
 def test_payment(request):
     """Vue de test pour les paiements - accessible seulement en développement"""
