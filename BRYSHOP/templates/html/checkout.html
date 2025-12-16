@@ -64,6 +64,52 @@
                         💳 Carte bancaire
                     </label>
                 </div>
+
+                <!-- Section cartes sauvegardées -->
+                {% if user_cards %}
+                <div id="saved-cards-section" class="mt-3" style="display: none;">
+                    <h6 class="text-primary mb-3">Sélectionnez une carte sauvegardée :</h6>
+                    <div class="row">
+                        {% for card in user_cards %}
+                        <div class="col-md-6 mb-2">
+                            <div class="card border {% if card.is_default %}border-primary{% endif %}">
+                                <div class="card-body p-2">
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input" type="radio" name="selected_card"
+                                               id="card_{{ card.id }}" value="{{ card.id }}"
+                                               {% if card.is_default %}checked{% endif %}>
+                                        <label class="form-check-label w-100" for="card_{{ card.id }}">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    {% if card.card_type == 'visa' %}
+                                                        <i class="bi bi-credit-card text-primary"></i>
+                                                    {% elif card.card_type == 'mastercard' %}
+                                                        <i class="bi bi-credit-card text-warning"></i>
+                                                    {% else %}
+                                                        <i class="bi bi-credit-card"></i>
+                                                    {% endif %}
+                                                    <strong>{{ card.masked_number }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ card.cardholder_name }}</small>
+                                                </div>
+                                                {% if card.is_default %}
+                                                    <span class="badge bg-primary">Défaut</span>
+                                                {% endif %}
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-2">
+                        <a href="{% url 'ajouter_carte' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-plus-circle"></i> Ajouter une nouvelle carte
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
                 <div class="text-end">
                     <button type="submit" class="btn btn-lg btn-success">✅ Confirmer la commande</button>
                 </div>
@@ -74,4 +120,30 @@
         {% endif %}
     </div>
 </div>
+
+<!-- JavaScript pour gérer l'affichage des cartes sauvegardées -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const carteBancaireRadio = document.getElementById('carte_bancaire');
+    const savedCardsSection = document.getElementById('saved-cards-section');
+
+    // Fonction pour afficher/masquer les cartes sauvegardées
+    function toggleSavedCards() {
+        if (carteBancaireRadio.checked && savedCardsSection) {
+            savedCardsSection.style.display = 'block';
+        } else if (savedCardsSection) {
+            savedCardsSection.style.display = 'none';
+        }
+    }
+
+    // Écouter les changements sur les boutons radio de paiement
+    const paymentRadios = document.querySelectorAll('input[name="mode_paiement"]');
+    paymentRadios.forEach(radio => {
+        radio.addEventListener('change', toggleSavedCards);
+    });
+
+    // Vérifier l'état initial
+    toggleSavedCards();
+});
+</script>
 {% endblock %}

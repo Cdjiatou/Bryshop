@@ -1,0 +1,214 @@
+{% extends 'html/menu.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="bi bi-credit-card"></i> Ajouter une Carte Bancaire
+                    </h3>
+                </div>
+
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" id="cardForm">
+                        {% csrf_token %}
+
+                        <!-- Numéro de carte -->
+                        <div class="mb-3">
+                            <label for="card_number" class="form-label">
+                                <i class="bi bi-credit-card"></i> Numéro de carte *
+                            </label>
+                            <input type="text" class="form-control" id="card_number" name="card_number"
+                                   placeholder="1234 5678 9012 3456" maxlength="19" required>
+                            <div class="form-text">Entrez votre numéro de carte bancaire (espaces autorisés)</div>
+                        </div>
+
+                        <!-- Date d'expiration et CVV -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="expiry_date" class="form-label">
+                                        <i class="bi bi-calendar"></i> Date d'expiration *
+                                    </label>
+                                    <input type="text" class="form-control" id="expiry_date" name="expiry_date"
+                                           placeholder="MM/YY" maxlength="5" required>
+                                    <div class="form-text">Format: MM/AA (ex: 12/25)</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="card_type" class="form-label">
+                                        <i class="bi bi-tags"></i> Type de carte
+                                    </label>
+                                    <select class="form-select" id="card_type" name="card_type">
+                                        <option value="other">Détection automatique</option>
+                                        <option value="visa">Visa</option>
+                                        <option value="mastercard">MasterCard</option>
+                                        <option value="amex">American Express</option>
+                                        <option value="discover">Discover</option>
+                                    </select>
+                                    <div class="form-text">Le type sera détecté automatiquement</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nom du titulaire -->
+                        <div class="mb-3">
+                            <label for="cardholder_name" class="form-label">
+                                <i class="bi bi-person"></i> Nom du titulaire *
+                            </label>
+                            <input type="text" class="form-control" id="cardholder_name" name="cardholder_name"
+                                   placeholder="NOM PRENOM" style="text-transform: uppercase;" required>
+                            <div class="form-text">Comme indiqué sur la carte</div>
+                        </div>
+
+                        <!-- Carte par défaut -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_default" name="is_default">
+                                <label class="form-check-label" for="is_default">
+                                    <i class="bi bi-star"></i> Définir comme carte par défaut
+                                </label>
+                                <div class="form-text">Cette carte sera sélectionnée automatiquement lors des prochains achats</div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'mes_cartes' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Retour à mes cartes
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-save"></i> Enregistrer la carte
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript pour améliorer l'expérience utilisateur -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cardNumberInput = document.getElementById('card_number');
+    const expiryDateInput = document.getElementById('expiry_date');
+    const cardTypeSelect = document.getElementById('card_type');
+    const cardholderNameInput = document.getElementById('cardholder_name');
+    const submitBtn = document.querySelector('button[type="submit"]');
+
+    // Formatage automatique du numéro de carte
+    cardNumberInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        let formattedValue = '';
+
+        // Limiter à 16 chiffres maximum (sauf Amex qui peut avoir 15)
+        if (value.length > 16) {
+            value = value.substring(0, 16);
+        }
+
+        // Ajouter des espaces tous les 4 chiffres
+        for (let i = 0; i < value.length; i++) {
+            if (i > 0 && i % 4 === 0) {
+                formattedValue += ' ';
+            }
+            formattedValue += value[i];
+        }
+
+        e.target.value = formattedValue;
+
+        // Détection automatique du type de carte
+        if (value.startsWith('4')) {
+            cardTypeSelect.value = 'visa';
+        } else if (value.startsWith('5') && ['1','2','3','4','5'].includes(value[1])) {
+            cardTypeSelect.value = 'mastercard';
+        } else if (value.startsWith('3') && ['4','7'].includes(value[1])) {
+            cardTypeSelect.value = 'amex';
+        } else if (value.startsWith('6')) {
+            cardTypeSelect.value = 'discover';
+        } else {
+            cardTypeSelect.value = 'other';
+        }
+
+        validateForm();
+    });
+
+    // Formatage automatique de la date d'expiration
+    expiryDateInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+
+        if (value.length >= 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2, 4);
+        }
+
+        e.target.value = value;
+        validateForm();
+    });
+
+    // Mise en majuscules automatique du nom
+    cardholderNameInput.addEventListener('input', function(e) {
+        e.target.value = e.target.value.toUpperCase();
+        validateForm();
+    });
+
+    // Validation du formulaire
+    function validateForm() {
+        const cardNumber = cardNumberInput.value.replace(/\s/g, '');
+        const expiryDate = expiryDateInput.value;
+        const cardholderName = cardholderNameInput.value;
+
+        let isValid = true;
+
+        // Validation du numéro de carte (Luhn algorithm basique)
+        if (cardNumber.length < 13 || cardNumber.length > 19) {
+            isValid = false;
+        }
+
+        // Validation de la date d'expiration
+        if (expiryDate.length !== 5 || !expiryDate.includes('/')) {
+            isValid = false;
+        } else {
+            const [month, year] = expiryDate.split('/');
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear() % 100;
+            const currentMonth = currentDate.getMonth() + 1;
+
+            if (parseInt(month) < 1 || parseInt(month) > 12 ||
+                parseInt(year) < currentYear ||
+                (parseInt(year) === currentYear && parseInt(month) < currentMonth)) {
+                isValid = false;
+            }
+        }
+
+        // Validation du nom
+        if (cardholderName.length < 2) {
+            isValid = false;
+        }
+
+        submitBtn.disabled = !isValid;
+        return isValid;
+    }
+
+    // Animation de soumission
+    document.getElementById('cardForm').addEventListener('submit', function() {
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enregistrement...';
+        submitBtn.disabled = true;
+    });
+
+    // Validation initiale
+    validateForm();
+});
+</script>
+{% endblock %}

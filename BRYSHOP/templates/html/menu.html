@@ -69,8 +69,22 @@
                     </div>
                    <ul class="navbar-nav ml-auto">
                       {% if user.is_authenticated %}
-                        <li class="nav-item">
-                          <a class="nav-link text-danger" href="{% url 'logout' %}">Déconnexion</a>
+                        <li class="nav-item dropdown">
+                          <a class="nav-link dropdown-toggle" href="#" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i> {{ user.first_name|default:user.username }}
+                          </a>
+                          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                            <a class="dropdown-item" href="{% url 'mes_commandes' %}">
+                              <i class="bi bi-receipt"></i> Mes commandes
+                            </a>
+                            <a class="dropdown-item" href="{% url 'mes_cartes' %}">
+                              <i class="bi bi-credit-card"></i> Mes cartes bancaires
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                              <i class="bi bi-box-arrow-right"></i> Déconnexion
+                            </a>
+                          </div>
                         </li>
                       {% else %}
                         <li class="nav-item">

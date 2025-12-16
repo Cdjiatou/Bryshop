@@ -1,0 +1,171 @@
+{% extends 'html/menu.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center text-primary mb-4"> Test de Paiement - BryShop</h2>
+        <p class="text-center text-muted mb-4">Formulaire de test pour vérifier l'intégration Notch Pay</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <form method="post" action="{% url 'test_payment' %}">
+                    {% csrf_token %}
+
+                    <!-- Informations de base -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Informations du client</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       value="{{ form_data.email|default:default_values.email }}" required>
+                                <div class="form-text">Email du client pour la transaction</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Détails du paiement -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"> Détails du paiement</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="amount" class="form-label">Montant *</label>
+                                        <input type="number" class="form-control" id="amount" name="amount" min="100"
+                                               value="{{ form_data.amount|default:default_values.amount }}" required>
+                                        <div class="form-text">Montant en XAF (minimum 100)</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="currency" class="form-label">Devise</label>
+                                        <select class="form-select" id="currency" name="currency">
+                                            {% for currency in currencies %}
+                                                <option value="{{ currency }}"
+                                                        {% if form_data.currency == currency or default_values.currency == currency %}selected{% endif %}>
+                                                    {{ currency }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <input type="text" class="form-control" id="description" name="description"
+                                       value="{{ form_data.description|default:default_values.description }}">
+                                <div class="form-text">Description de la transaction</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Méthode de paiement -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"> Méthode de paiement</h5>
+                        </div>
+                        <div class="card-body">
+                            {% for method_code, method_name in payment_methods %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="payment_method"
+                                           id="method_{{ method_code }}" value="{{ method_code }}"
+                                           {% if form_data.payment_method == method_code or default_values.payment_method == method_code %}checked{% endif %}>
+                                    <label class="form-check-label" for="method_{{ method_code }}">
+                                        {% if method_code == 'orange_money' %}
+                                            🟠 {{ method_name }}
+                                        {% elif method_code == 'mtn_money' %}
+                                            🟡 {{ method_name }}
+                                        {% elif method_code == 'carte_bancaire' %}
+                                            💳 {{ method_name }}
+                                        {% else %}
+                                            {{ method_name }}
+                                        {% endif %}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-lg btn-success me-2">
+                             Tester le paiement
+                        </button>
+                        <a href="{% url 'Accueil' %}" class="btn btn-secondary btn-lg">
+                             Retour à l'accueil
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Section de débogage (visible seulement si DEBUG=True) -->
+        {% if debug %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card bg-light">
+                    <div class="card-header">
+                        <h6 class="mb-0"> Informations de débogage</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if response %}
+                            <h6>Réponse Notch Pay :</h6>
+                            <pre class="bg-dark text-light p-3 rounded">{{ response }}</pre>
+                        {% endif %}
+
+                        <h6>Configuration :</h6>
+                        <ul>
+                            <li>NOTCH_PAY_URL: {{ notch_pay_url }}</li>
+                            <li>NOTCH_PAY_VERIFY_URL: {{ notch_pay_verify_url }}</li>
+                            <li>Public Key: {{ notch_pay_key|truncatechars:20 }}...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- JavaScript pour améliorer l'expérience utilisateur -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validation du montant minimum
+    const amountInput = document.getElementById('amount');
+    const submitBtn = document.querySelector('button[type="submit"]');
+
+    amountInput.addEventListener('input', function() {
+        const amount = parseInt(this.value);
+        if (amount < 100) {
+            this.classList.add('is-invalid');
+            submitBtn.disabled = true;
+        } else {
+            this.classList.remove('is-invalid');
+            submitBtn.disabled = false;
+        }
+    });
+
+    // Animation de succès lors de la soumission
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function() {
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Traitement...';
+        submitBtn.disabled = true;
+    });
+});
+</script>
+{% endblock %}

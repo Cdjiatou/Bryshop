@@ -16,7 +16,15 @@ urlpatterns = [
     path('place_order/', views.place_order, name='place_order'),
     path('cart/update/<int:cart_item_id>/<str:action>/', views.update_cart_quantity, name='update_cart_quantity'),
     path('payment/callback/', views.payment_callback, name='payment_callback'),
+
     path('mes-commandes/', views.mes_commandes, name='mes_commandes'),
+    path('test-payment/', views.test_payment, name='test_payment'),
+
+    # Gestion des cartes bancaires
+    path('mes-cartes/', views.mes_cartes, name='mes_cartes'),
+    path('ajouter-carte/', views.ajouter_carte, name='ajouter_carte'),
+    path('supprimer-carte/<int:card_id>/', views.supprimer_carte, name='supprimer_carte'),
+    path('definir-carte-defaut/<int:card_id>/', views.definir_carte_defaut, name='definir_carte_defaut'),
 
 
 
