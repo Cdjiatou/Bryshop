@@ -1,4 +1,115 @@
-from django.contrib.auth.decorators import login_required
+
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .forms_profil import ProfilBoutiquierForm, PasswordChangeCustomForm
+from django.contrib.auth import update_session_auth_hash,get_user_model
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .forms import CategoryForm, ProductForm
+
+
+# Vérifie si l'utilisateur est boutiquier ou superuser
+def is_boutiquier(user):
+    return user.is_superuser or (hasattr(user, 'role') and user.role == 'boutiquier')
+
+# Vue pour modifier le profil du boutiquier
+@login_required
+@user_passes_test(is_boutiquier, login_url='login')
+def modifier_profil(request):
+    user = request.user
+    if request.method == 'POST':
+        form = ProfilBoutiquierForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profil mis à jour avec succès !')
+            return redirect('dashboard_boutiquier')
+    else:
+        form = ProfilBoutiquierForm(instance=user)
+    return render(request, 'html/modifier_profil.html', {'form': form})
+
+# Vue pour changer le mot de passe
+@login_required
+@user_passes_test(is_boutiquier, login_url='login')
+def changer_mot_de_passe(request):
+    user = request.user
+    if request.method == 'POST':
+        form = PasswordChangeCustomForm(request.POST)
+        if form.is_valid():
+            old_password = form.cleaned_data['old_password']
+            new_password1 = form.cleaned_data['new_password1']
+            new_password2 = form.cleaned_data['new_password2']
+            if not user.check_password(old_password):
+                form.add_error('old_password', 'Ancien mot de passe incorrect.')
+            elif new_password1 != new_password2:
+                form.add_error('new_password2', 'Les mots de passe ne correspondent pas.')
+            else:
+                user.set_password(new_password1)
+                user.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Mot de passe changé avec succès !')
+                return redirect('dashboard_boutiquier')
+    else:
+        form = PasswordChangeCustomForm()
+    return render(request, 'html/changer_mot_de_passe.html', {'form': form})
+
+
+# Vérifie si l'utilisateur est boutiquier ou superuser
+def is_boutiquier(user):
+    return user.is_superuser or (hasattr(user, 'role') and user.role == 'boutiquier')
+
+# Vue pour ajouter une catégorie
+@login_required
+@user_passes_test(is_boutiquier, login_url='login')
+def ajouter_categorie(request):
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Catégorie ajoutée avec succès !')
+            return redirect('dashboard_boutiquier')
+    else:
+        form = CategoryForm()
+    return render(request, 'html/ajouter_categorie.html', {'form': form})
+
+# Vue pour ajouter un produit
+@login_required
+@user_passes_test(is_boutiquier, login_url='login')
+def ajouter_produit(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Produit ajouté avec succès !')
+            return redirect('dashboard_boutiquier')
+    else:
+        form = ProductForm()
+    return render(request, 'html/ajouter_produit.html', {'form': form})
+
+@login_required
+@user_passes_test(is_boutiquier, login_url='login')
+def dashboard_boutiquier(request):
+    user = request.user
+    # Statistiques
+    total_commandes = Order.objects.count()
+    total_produits = Product.objects.count()
+    User = get_user_model()
+    total_clients = User.objects.count()
+    commandes = Order.objects.all().order_by('-date_ordered')
+    categories = Category.objects.all()
+    produits = Product.objects.all()
+    # Notifications fictives (à améliorer)
+    notifications = [
+        {'message': 'Nouvelle commande reçue !'},
+        {'message': 'Stock faible sur certains produits.'},
+    ]
+    return render(request, 'html/dashboard_boutiquier.html', {
+        'user': user,
+        'total_commandes': total_commandes,
+        'total_produits': total_produits,
+        'total_clients': total_clients,
+        'commandes': commandes,
+        'categories': categories,
+        'produits': produits,
+        'notifications': notifications,
+    })
 from django.shortcuts import get_object_or_404, render, redirect
 from .models import CartItem, Product, Commande, Category, Cart, Order
 from django.core.paginator import Paginator

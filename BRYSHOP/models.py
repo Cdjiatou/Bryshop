@@ -14,6 +14,8 @@ class Category(models.Model):
     def __str__(self):  #fonction qui retourne l'element par son mom
         return self.name   
         
+
+
 class Product(models.Model):
     title = models.CharField(max_length=200)
     price = models.FloatField()
@@ -34,6 +36,8 @@ class Product(models.Model):
     
     def peut_commander(self, quantite):
         return self.stock >= quantite 
+    
+
     
     
 class Commande(models.Model):

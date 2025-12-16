@@ -7,10 +7,16 @@ from django.conf import settings
 # Create your models here.
 class CustomUser(AbstractUser):
     sexe_choices = [('M', 'Masculin'), ('F', 'Féminin')]
+    role_choices = [
+        ('client', 'Client'),
+        ('boutiquier', 'Boutiquier'),
+        ('admin', 'Admin'),
+    ]
     telephone = models.CharField(max_length=20)
     ville = models.CharField(max_length=100)
     pays = models.CharField(max_length=100)
     sexe = models.CharField(max_length=1, choices=sexe_choices)
+    role = models.CharField(max_length=20, choices=role_choices, default='client')
 
 
 class Client(models.Model):
