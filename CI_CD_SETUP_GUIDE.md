@@ -65,7 +65,7 @@ GRANT ALL PRIVILEGES ON DATABASE "BryshopDB" TO bryshop;
 ### Étape 2 : Installer les Dépendances Python
 
 ```bash
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 ### Étape 3 : Tester l'Application Localement

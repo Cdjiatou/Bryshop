@@ -1,7 +1,7 @@
 # ============================================
 # STAGE 1: Builder - Installation des dépendances
 # ============================================
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 # Définir le répertoire de travail
 WORKDIR /app
@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copier les fichiers requirements pour profiter du cache Docker
-COPY requirement.txt requirements-docker.txt ./
+COPY requirements.txt requirements-docker.txt ./
 
 # Installer les dépendances Python dans un environnement virtuel
 RUN python -m venv /opt/venv

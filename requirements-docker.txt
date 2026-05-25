@@ -1,5 +1,5 @@
 # Dépendances de base
--r requirement.txt
+-r requirements.txt
 
 # Serveur WSGI pour production
 gunicorn==21.2.0
