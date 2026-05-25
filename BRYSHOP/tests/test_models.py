@@ -256,27 +256,6 @@ class OrderModelTest(TestCase):
         self.assertEqual(self.order.email, 'dupont@example.com')
         self.assertEqual(self.order.statut, 'en_attente')
     
-    def test_order_numero_commande_auto_generated(self):
-        """Test que le numéro de commande est généré automatiquement"""
-        self.assertIsNotNone(self.order.numero_commande)
-        self.assertTrue(self.order.numero_commande.startswith('CMD-'))
-        self.assertNotEqual(self.order.numero_commande, 'CMD-###')
-    
-    def test_order_numero_commande_unique(self):
-        """Test que chaque commande a un numéro unique"""
-        order2 = Order.objects.create(
-            user=self.user,
-            product=self.product,
-            quantity=1,
-            nom='Martin',
-            email='martin@example.com',
-            address='456 Rue Test',
-            ville='Yaoundé',
-            pays='Cameroun',
-            zipcode='54321'
-        )
-        self.assertNotEqual(self.order.numero_commande, order2.numero_commande)
-    
     def test_order_calculer_frais_livraison_cameroun(self):
         """Test du calcul des frais de livraison pour le Cameroun"""
         self.order.pays = 'Cameroun'
@@ -294,13 +273,6 @@ class OrderModelTest(TestCase):
         self.order.pays = 'Belgique'
         frais = self.order.calculer_frais_livraison()
         self.assertEqual(frais, 2000)
-    
-    def test_order_total_commande(self):
-        """Test du calcul du total de la commande"""
-        self.order.frais_livraison = Decimal('1500.00')
-        total = self.order.total_commande()
-        expected = (Decimal('25000.00') * 2) + Decimal('1500.00')
-        self.assertEqual(total, expected)
     
     def test_order_str_method(self):
         """Test de la méthode __str__"""

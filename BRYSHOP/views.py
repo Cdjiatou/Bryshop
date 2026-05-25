@@ -151,7 +151,7 @@ def index(request):
     return render(request, 'html/index.html', {'product_object': product_object})
 
 def detail(request, myid):
-    product_object = Product.objects.get(id=myid)
+    product_object = get_object_or_404(Product, id=myid)
     return render(request, 'html/detailProduit.htm', {'product': product_object})
 
 

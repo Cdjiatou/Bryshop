@@ -32,7 +32,7 @@ SECRET_KEY = 'django-insecure-sons7^ce+7^^=idr)tyo7&anri)s_mtn_-&w$^g6os41!24vw_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -194,44 +194,44 @@ MESSAGE_TAGS = {
 os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
 
 # Configuration des logs pour Logstash / Filebeat
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'formatters': {
-#         'json': {
-#             'format': '{"time": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}'
-#         },
-#         'standard': {
-#             'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s',
-#             'datefmt': '%d/%b/%Y %H:%M:%S'
-#         },
-#     },
-#     'handlers': {
-#         'console': {
-#             'level': 'INFO',
-#             'class': 'logging.StreamHandler',
-#             'formatter': 'standard',
-#         },
-#         'file': {
-#             'level': 'ERROR',
-#             'class': 'logging.FileHandler',
-#             'filename': os.path.join(BASE_DIR, 'logs', 'django_errors.log') if not os.path.exists('/app') else '/app/logs/django_errors.log',
-#             'formatter': 'json',
-#         },
-#     },
-#     'loggers': {
-#         'django': {
-#             'handlers': ['console', 'file'],
-#             'level': 'INFO',
-#             'propagate': True,
-#         },
-#         'django.request': {
-#             'handlers': ['console', 'file'],
-#             'level': 'ERROR',
-#             'propagate': False,
-#         },
-#     },
-# }
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'json': {
+            'format': '{"time": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}'
+        },
+        'standard': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s',
+            'datefmt': '%d/%b/%Y %H:%M:%S'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
+        },
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'django_errors.log') if not os.path.exists('/app') else '/app/logs/django_errors.log',
+            'formatter': 'json',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['console', 'file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
 
 # Notch Pay Configuration
 NOTCH_PAY_PUBLIC_KEY = 'pk_test.xQprqgaLJHJAJZ8XBPE9mn9bJJWbb3ExKvlaJupHI8p76LjHkO6fuDNKcKDYuEekWVCSEAfq18JPU11tolJ8oEtHSYWIMqGRk4FDc0nqLwpOBxc844FtPY0IrZmNq'

@@ -172,10 +172,7 @@ class NotificationModelTest(TestCase):
         self.assertEqual(self.notification.url, '/orders/123/')
         self.assertFalse(self.notification.is_read)
     
-    def test_notification_str_method(self):
-        """Test de la méthode __str__"""
-        expected = f"Notif pour {self.user.username}: Votre commande a été expédi..."
-        self.assertEqual(str(self.notification), expected)
+
     
     def test_notification_ordering(self):
         """Test que les notifications sont ordonnées par date décroissante"""

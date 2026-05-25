@@ -188,47 +188,4 @@ jobs:
         run: |
           echo "Image pushed successfully!"
           echo "Digest: ${{ steps.docker_push.outputs.digest }}"
-
-  # ============================================
-  # STAGE 4: Deploy to O2Switch
-  # ============================================
-  deploy:
-    name: 🚀 Deploy to O2Switch
-    runs-on: ubuntu-latest
-    needs: [build-scan-push]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.O2SWITCH_SSH_KEY }}
-
-      - name: Deploy to O2Switch
-        env:
-          O2SWITCH_HOST: ${{ secrets.O2SWITCH_HOST }}
-          O2SWITCH_USER: ${{ secrets.O2SWITCH_USER }}
-          O2SWITCH_PATH: ${{ secrets.O2SWITCH_PATH }}
-          DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
-          COMMIT_SHA: ${{ github.sha }}
-        run: |
-          # Passage propre des variables d'environnement au script SSH distant
-          ssh -o StrictHostKeyChecking=no $O2SWITCH_USER@$O2SWITCH_HOST "DOCKER_IMAGE='$DOCKER_IMAGE' COMMIT_SHA='$COMMIT_SHA' O2SWITCH_PATH='$O2SWITCH_PATH'" 'bash -s' << 'EOF'
-            set -e
-            cd "$O2SWITCH_PATH"
-            docker pull "$DOCKER_IMAGE:$COMMIT_SHA"
-            docker tag "$DOCKER_IMAGE:$COMMIT_SHA" "$DOCKER_IMAGE:latest"
-            docker-compose down || true
-            export DOCKER_IMAGE
-            docker-compose up -d
-            sleep 10
-            if docker ps | grep -q bryshop_web; then
-              echo "Deployment successful!"
-            else
-              echo "Deployment failed!"
-              exit 1
-            fi
-          EOF
+
