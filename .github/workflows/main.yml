@@ -183,6 +183,7 @@ jobs:
             ${{ env.DOCKER_IMAGE }}:latest
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache,mode=max
 
       - name: Image digest
         run: |
@@ -220,6 +221,7 @@ jobs:
             docker pull ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
             docker tag ${{ env.DOCKER_IMAGE }}:${{ github.sha }} ${{ env.DOCKER_IMAGE }}:latest
             docker-compose down || true
+            export DOCKER_IMAGE=${{ env.DOCKER_IMAGE }}
             docker-compose up -d
             sleep 10
             if docker ps | grep -q bryshop_web; then

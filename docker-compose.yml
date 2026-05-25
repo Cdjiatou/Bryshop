@@ -24,6 +24,7 @@ services:
 
   # Application Django
   web:
+    image: ${DOCKER_IMAGE:-cdjiatou/bryshop:latest}
     build:
       context: .
       dockerfile: Dockerfile
