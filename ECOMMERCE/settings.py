@@ -199,7 +199,6 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'json': {
-            '()': 'django.utils.log.log_formatters', # Optionnel : utiliser un vrai formateur JSON en prod, ici dict de base
             'format': '{"time": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}'
         },
         'standard': {
