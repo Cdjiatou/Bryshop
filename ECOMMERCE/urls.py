@@ -9,7 +9,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
 
     path('', include('BRYSHOP.urls')),
-    
+    path('', include('django_prometheus.urls')),
      
 ]
 

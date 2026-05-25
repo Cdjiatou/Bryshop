@@ -1,3 +1,4 @@
+# Python
 venv/
 __pycache__/
 *.pyc
@@ -12,11 +13,42 @@ build/
 *.log
 *.pot
 *.mo
+
+# Django
 db.sqlite3
-.env
-.venv
-setting
+*.sqlite3
 media/
 staticfiles/
+setting
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
+
+# Coverage
+.coverage
+htmlcov/
+coverage.xml
+.pytest_cache/
+
+# Docker
 deta
+
+# OS
+Thumbs.db
+
+# Secrets (ne jamais commiter)
+*.pem
+*.key
+id_rsa*
+*.ppk

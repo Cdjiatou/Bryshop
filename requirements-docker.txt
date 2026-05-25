@@ -1,0 +1,9 @@
+# Dépendances de base
+-r requirement.txt
+
+# Serveur WSGI pour production
+gunicorn==21.2.0
+
+# Pour le healthcheck
+requests==2.32.5
+django-prometheus==2.3.1

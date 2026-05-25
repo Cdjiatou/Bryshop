@@ -1,0 +1,83 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info
+dist/
+build/
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Database
+*.sqlite3
+db.sqlite3
+*.db
+
+# Media files (optionnel - à commenter si vous voulez inclure les médias)
+# media/
+
+# Static files (seront collectés dans le conteneur)
+staticfiles/
+static/
+
+# Documentation
+*.md
+README.md
+TESTS_README.md
+COMMENT_LANCER_LES_TESTS.md
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Environment variables (sécurité)
+.env
+.env.local
+.env.*.local
+
+# Agent workflows
+.agent/

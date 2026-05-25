@@ -1,0 +1,255 @@
+name: BryShop CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/bryshop
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # ============================================
+  # STAGE 1: Lint & Test
+  # ============================================
+  lint-and-test:
+    name: 🧪 Lint & Test
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: BryshopDB
+          POSTGRES_USER: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust  # Pas de mot de passe
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name:  Checkout code
+        uses: actions/checkout@v4
+
+      - name:  Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name:  Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirement.txt
+          pip install flake8 pylint
+
+      - name:  Lint with flake8
+        run: |
+          # Stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Exit-zero treats all errors as warnings
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        continue-on-error: true
+
+      - name:  Run tests
+        env:
+          DATABASE_NAME: BryshopDB
+          DATABASE_USER: postgres
+          DATABASE_PASSWORD: 
+          DATABASE_HOST: localhost
+          DATABASE_PORT: 5432
+        run: |
+          python manage.py test --verbosity=2
+
+      - name:  Generate test coverage
+        env:
+          DATABASE_NAME: BryshopDB
+          DATABASE_USER: postgres
+          DATABASE_PASSWORD: 
+          DATABASE_HOST: localhost
+          DATABASE_PORT: 5432
+        run: |
+          pip install coverage
+          coverage run --source='.' manage.py test
+          coverage report
+          coverage xml
+        continue-on-error: true
+
+      - name:  Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+        if: always()
+
+  # ============================================
+  # STAGE 2: Code Quality (SonarQube)
+  # ============================================
+  code-quality:
+    name:  Code Quality Analysis
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    
+    steps:
+      - name:  Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+
+      - name:  Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+        continue-on-error: true
+
+      - name:  SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=bryshop
+            -Dsonar.sources=.
+            -Dsonar.exclusions=**/migrations/**,**/tests/**,**/static/**,**/media/**,**/venv/**
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.python.version=3.11
+
+      - name:  Wait for Quality Gate
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  # ============================================
+  # STAGE 3: Build & Push Docker Hub
+  # ============================================
+  build-and-push:
+    name:  Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: code-quality
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    
+    steps:
+      - name:  Checkout code
+        uses: actions/checkout@v4
+
+      - name:  Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name:  Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name:  Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name:  Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+            ${{ env.DOCKER_IMAGE }}:latest
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+
+      - name:  Image digest
+        run: echo "Image pushed with SHA: ${{ github.sha }}"
+
+  # ============================================
+  # STAGE 4: Deploy to O2Switch
+  # ============================================
+  deploy:
+    name:  Deploy to O2Switch
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name:  Checkout code
+        uses: actions/checkout@v4
+
+      - name:  Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.O2SWITCH_SSH_KEY }}
+
+      - name:  Deploy to O2Switch
+        env:
+          O2SWITCH_HOST: ${{ secrets.O2SWITCH_HOST }}
+          O2SWITCH_USER: ${{ secrets.O2SWITCH_USER }}
+          O2SWITCH_PATH: ${{ secrets.O2SWITCH_PATH }}
+          DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
+        run: |
+          ssh -o StrictHostKeyChecking=no $O2SWITCH_USER@$O2SWITCH_HOST << 'EOF'
+            set -e
+            
+            echo " Starting deployment..."
+            
+            # Navigate to application directory
+            cd ${{ secrets.O2SWITCH_PATH }}
+            
+            # Pull latest image
+            echo " Pulling latest Docker image..."
+            docker pull ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+            docker tag ${{ env.DOCKER_IMAGE }}:${{ github.sha }} ${{ env.DOCKER_IMAGE }}:latest
+            
+            # Stop and remove old container
+            echo " Stopping old container..."
+            docker-compose down || true
+            
+            # Start new container
+            echo "▶ Starting new container..."
+            docker-compose up -d
+            
+            # Wait for application to be ready
+            echo " Waiting for application to be ready..."
+            sleep 10
+            
+            # Check if container is running
+            if docker ps | grep -q bryshop_web; then
+              echo " Deployment successful!"
+            else
+              echo " Deployment failed!"
+              docker-compose logs
+              exit 1
+            fi
+            
+            # Clean up old images
+            echo " Cleaning up old images..."
+            docker image prune -af --filter "until=24h" || true
+            
+            echo "🎉 Deployment completed successfully!"
+          EOF
+
+      - name:  Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Deployment to O2Switch successful!"
+          else
+            echo "❌ Deployment to O2Switch failed!"
+          fi
