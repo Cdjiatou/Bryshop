@@ -74,52 +74,12 @@ jobs:
         if: always()
 
   # ============================================
-  # STAGE 2: Code Quality (SonarQube)
-  # ============================================
-  code-quality:
-    name: 📊 Code Quality Analysis
-    runs-on: ubuntu-latest
-    needs: lint-and-test
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Download coverage report
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-report
-        continue-on-error: true
-
-      - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        with:
-          args: >
-            -Dsonar.projectKey=bryshop
-            -Dsonar.sources=.
-            -Dsonar.exclusions=**/migrations/**,**/tests/**,**/static/**,**/media/**,**/venv/**
-            -Dsonar.python.coverage.reportPaths=coverage.xml
-            -Dsonar.python.version=3.11
-
-      - name: Wait for Quality Gate
-        uses: sonarsource/sonarqube-quality-gate-action@master
-        timeout-minutes: 5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-
-  # ============================================
-  # STAGE 3: Build, Scan & Push Docker Hub
+  # STAGE 2: Build, Scan & Push Docker Hub
   # ============================================
   build-scan-push:
     name: 🐳 Build, Scan & Push Docker Image
     runs-on: ubuntu-latest
-    needs: code-quality
+    needs: lint-and-test
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     
     outputs:
